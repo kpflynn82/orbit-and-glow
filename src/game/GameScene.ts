@@ -402,7 +402,7 @@ export class GameScene extends Phaser.Scene {
       const t = this.add.text(GAME_W / 2, top + 14, this.level.tip, {
         ...style, fontSize: '23px', align: 'center', wordWrap: { width: 600 }, lineSpacing: 4,
       }).setOrigin(0.5, 0);
-      const bg = this.add.rectangle(GAME_W / 2, top, 640, t.height + 28, 0x0b1026, 0.82).setOrigin(0.5, 0).setStrokeStyle(2, PAL.orbit, 0.35);
+      const bg = this.add.rectangle(GAME_W / 2, top, 640, t.height + 28, 0x0b1026, 0.96).setOrigin(0.5, 0).setStrokeStyle(2, PAL.orbit, 0.35);
       this.tipText = this.add.container(0, 0, [bg, t]);
       this.hud.add(this.tipText);
     }
@@ -417,7 +417,7 @@ export class GameScene extends Phaser.Scene {
     const t = this.tipText;
     if (!t) return;
     if (this.level.tipUntil === 'fuse' && trigger !== 'fuse') {
-      if (t.alpha > 0.7) this.tweens.add({ targets: t, alpha: 0.6, duration: 400 });
+      if (t.alpha > 0.9) this.tweens.add({ targets: t, alpha: 0.85, duration: 400 });
       return;
     }
     this.tipText = null;

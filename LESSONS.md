@@ -81,6 +81,8 @@ section. Read this before starting work; the next prototype reads it before it s
 - Reviewer: dropping a comet on a partner that hadn't landed said "only two different colors can
   fuse" (wrong reason); it now says to wait. The link between Dock slots 1 and 3 ran under the middle
   comet; far links now arc below the Dock. Fusion-teaching tips stay (dimmed) until the first fusion.
+- Reviewer: the lingering tip was too faint (orbit line through its letters); its box is now solid
+  and it dims only slightly.
 
 ## Testing and tooling
 
