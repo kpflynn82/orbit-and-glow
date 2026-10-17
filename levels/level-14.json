@@ -1,0 +1,129 @@
+{
+  "id": "ch01-l14",
+  "name": "Planet",
+  "badge": "normal",
+  "canvas": [
+    "B............",
+    "....OOOOO....",
+    "..OORRRRROO..",
+    ".OOYYYYYYYOO.",
+    "PPPPPPPPPPPPP",
+    ".ORRRRRRRRRO.",
+    "PPPPPPPPPPPPP",
+    ".OOYYYYYYYOO.",
+    "..OORRRRROO..",
+    "....OOOOO...B",
+    "............B"
+  ],
+  "rails": [
+    [
+      {
+        "color": "R",
+        "charge": 10
+      },
+      {
+        "color": "P",
+        "charge": 9
+      }
+    ],
+    [
+      {
+        "color": "R",
+        "charge": 9
+      },
+      {
+        "color": "O",
+        "charge": 10
+      }
+    ],
+    [
+      {
+        "color": "Y",
+        "charge": 14
+      },
+      {
+        "color": "O",
+        "charge": 18
+      }
+    ],
+    [
+      {
+        "color": "P",
+        "charge": 17
+      },
+      {
+        "color": "B",
+        "charge": 3
+      }
+    ]
+  ],
+  "dock": 3,
+  "ring": 4,
+  "solver": {
+    "winnable_no_tools": true,
+    "winning_orders": 1000000,
+    "winning_orders_capped": true,
+    "peak_dock": 1,
+    "random_win": 0.3556,
+    "states": 193388,
+    "path": [
+      {
+        "kind": "rail",
+        "rail": 1
+      },
+      {
+        "kind": "rail",
+        "rail": 1
+      },
+      {
+        "kind": "dock",
+        "slot": 0
+      },
+      {
+        "kind": "dock",
+        "slot": 0
+      },
+      {
+        "kind": "dock",
+        "slot": 0
+      },
+      {
+        "kind": "dock",
+        "slot": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 2
+      },
+      {
+        "kind": "rail",
+        "rail": 2
+      },
+      {
+        "kind": "rail",
+        "rail": 3
+      },
+      {
+        "kind": "rail",
+        "rail": 3
+      },
+      {
+        "kind": "dock",
+        "slot": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 0
+      },
+      {
+        "kind": "dock",
+        "slot": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 0
+      }
+    ],
+    "exact": true
+  }
+}

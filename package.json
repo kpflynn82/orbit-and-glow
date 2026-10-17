@@ -1,0 +1,30 @@
+{
+  "name": "orbit-and-glow",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Orbit & Glow — a color-sort puzzle prototype (gamecrafter). Web-first gray box.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "build:single": "tsc --noEmit && vite build --mode single && node tools/inline-build.mjs",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "levels": "tsx tools/generate-levels.ts",
+    "solve": "tsx tools/solve-all.ts",
+    "bot": "tsx playtest/bot.ts",
+    "screens": "tsx playtest/screens.ts",
+    "bench": "tsx tools/bench-16.ts"
+  },
+  "dependencies": {
+    "phaser": "^3.90.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "playwright": "^1.56.1",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.7",
+    "vitest": "^5.0.5"
+  }
+}

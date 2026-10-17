@@ -1,0 +1,102 @@
+{
+  "id": "ch01-l06",
+  "name": "Apple Tree",
+  "badge": "normal",
+  "canvas": [
+    "...GGGG...",
+    ".GGRGGRGG.",
+    "GGRGGRGGRG",
+    "GRGGRGGRGG",
+    ".GGRGGRGG.",
+    "..GGGGGG..",
+    "....OO....",
+    "...SOOS...",
+    "...SOOS...",
+    "..SSSSSS.."
+  ],
+  "rails": [
+    [
+      {
+        "color": "O",
+        "charge": 6
+      },
+      {
+        "color": "G",
+        "charge": 8
+      },
+      {
+        "color": "G",
+        "charge": 16
+      },
+      {
+        "color": "G",
+        "charge": 6
+      },
+      {
+        "color": "S",
+        "charge": 10
+      }
+    ],
+    [
+      {
+        "color": "G",
+        "charge": 6
+      }
+    ],
+    [
+      {
+        "color": "R",
+        "charge": 10
+      }
+    ]
+  ],
+  "dock": 3,
+  "ring": 4,
+  "solver": {
+    "winnable_no_tools": true,
+    "winning_orders": 7868,
+    "winning_orders_capped": false,
+    "peak_dock": 2,
+    "random_win": 0.7655,
+    "states": 458,
+    "path": [
+      {
+        "kind": "rail",
+        "rail": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 0
+      },
+      {
+        "kind": "dock",
+        "slot": 0
+      },
+      {
+        "kind": "dock",
+        "slot": 1
+      },
+      {
+        "kind": "rail",
+        "rail": 2
+      },
+      {
+        "kind": "rail",
+        "rail": 1
+      }
+    ],
+    "exact": true
+  }
+}

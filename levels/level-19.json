@@ -1,0 +1,119 @@
+{
+  "id": "ch01-l19",
+  "name": "Lighthouse",
+  "badge": "normal",
+  "canvas": [
+    "......YY......",
+    ".YY..SSSS..YY.",
+    ".....SYYS.....",
+    ".....SSSS.....",
+    ".....RRRR.....",
+    ".....WWWW.....",
+    "....RRRRRR....",
+    "....WWWWWW....",
+    "....RRRRRR....",
+    "...WWWWWWWW...",
+    "...RRRRRRRR...",
+    "..SSSSSSSSSS..",
+    "BBBSSSSSSSSBBB",
+    "BBBBBBBBBBBBBB"
+  ],
+  "rails": [
+    [
+      {
+        "color": "Y",
+        "charge": 8
+      }
+    ],
+    [
+      {
+        "color": "R",
+        "charge": 11
+      },
+      {
+        "color": "W",
+        "charge": 18
+      }
+    ],
+    [
+      {
+        "color": "R",
+        "charge": 13
+      },
+      {
+        "color": "B",
+        "charge": 20
+      }
+    ],
+    [
+      {
+        "color": "S",
+        "charge": 14
+      },
+      {
+        "color": "S",
+        "charge": 14
+      }
+    ]
+  ],
+  "dock": 3,
+  "ring": 4,
+  "solver": {
+    "winnable_no_tools": true,
+    "winning_orders": 1000000,
+    "winning_orders_capped": true,
+    "peak_dock": 1,
+    "random_win": 0.4771,
+    "states": 25153,
+    "path": [
+      {
+        "kind": "rail",
+        "rail": 1
+      },
+      {
+        "kind": "dock",
+        "slot": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 1
+      },
+      {
+        "kind": "dock",
+        "slot": 0
+      },
+      {
+        "kind": "dock",
+        "slot": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 3
+      },
+      {
+        "kind": "dock",
+        "slot": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 2
+      },
+      {
+        "kind": "dock",
+        "slot": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 2
+      },
+      {
+        "kind": "rail",
+        "rail": 3
+      }
+    ]
+  }
+}

@@ -1,0 +1,7 @@
+node_modules/
+dist/
+dist-single/
+*.log
+.DS_Store
+playtest/screenshots/*.png
+!playtest/screenshots/.gitkeep

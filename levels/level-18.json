@@ -1,0 +1,138 @@
+{
+  "id": "ch01-l18",
+  "name": "Butterfly",
+  "badge": "normal",
+  "canvas": [
+    ".PPP......PPP.",
+    "PPPPP....PPPPP",
+    "PPOOPP..PPOOPP",
+    "PPOOPPS.PPOOPP",
+    ".PPPPPSSPPPPP.",
+    "..PPPPSSPPPP..",
+    "..BBBBSSBBBB..",
+    ".BBBBBSSBBBBB.",
+    "BBOOBBSSBBOOBB",
+    "BBOOBB..BBOOBB",
+    ".BBBB....BBBB.",
+    "..BB......BB.."
+  ],
+  "rails": [
+    [
+      {
+        "color": "B",
+        "charge": 17
+      }
+    ],
+    [
+      {
+        "color": "B",
+        "charge": 11
+      },
+      {
+        "color": "P",
+        "charge": 17
+      }
+    ],
+    [
+      {
+        "color": "O",
+        "charge": 8
+      },
+      {
+        "color": "P",
+        "charge": 20
+      },
+      {
+        "color": "P",
+        "charge": 13
+      }
+    ],
+    [
+      {
+        "color": "O",
+        "charge": 8
+      },
+      {
+        "color": "S",
+        "charge": 11
+      },
+      {
+        "color": "B",
+        "charge": 18
+      }
+    ]
+  ],
+  "dock": 3,
+  "ring": 4,
+  "solver": {
+    "winnable_no_tools": true,
+    "winning_orders": 1000000,
+    "winning_orders_capped": true,
+    "peak_dock": 1,
+    "random_win": 0.4729,
+    "states": 115038,
+    "path": [
+      {
+        "kind": "rail",
+        "rail": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 1
+      },
+      {
+        "kind": "rail",
+        "rail": 1
+      },
+      {
+        "kind": "rail",
+        "rail": 3
+      },
+      {
+        "kind": "dock",
+        "slot": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 3
+      },
+      {
+        "kind": "dock",
+        "slot": 0
+      },
+      {
+        "kind": "dock",
+        "slot": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 3
+      },
+      {
+        "kind": "dock",
+        "slot": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 2
+      },
+      {
+        "kind": "rail",
+        "rail": 2
+      },
+      {
+        "kind": "dock",
+        "slot": 0
+      },
+      {
+        "kind": "dock",
+        "slot": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 2
+      }
+    ],
+    "exact": true
+  }
+}

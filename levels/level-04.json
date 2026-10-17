@@ -1,0 +1,98 @@
+{
+  "id": "ch01-l04",
+  "name": "Fish",
+  "badge": "normal",
+  "canvas": [
+    "...BBBBB..",
+    "Y.BOBOBOB.",
+    "YYBOBOBOWB",
+    "YYBOBOBOBB",
+    "Y.BOBOBOB.",
+    "...BBBBB.."
+  ],
+  "rails": [
+    [
+      {
+        "color": "W",
+        "charge": 1
+      }
+    ],
+    [
+      {
+        "color": "O",
+        "charge": 6
+      },
+      {
+        "color": "B",
+        "charge": 6
+      },
+      {
+        "color": "B",
+        "charge": 12
+      }
+    ],
+    [
+      {
+        "color": "O",
+        "charge": 6
+      },
+      {
+        "color": "B",
+        "charge": 9
+      },
+      {
+        "color": "Y",
+        "charge": 6
+      }
+    ]
+  ],
+  "dock": 3,
+  "ring": 4,
+  "solver": {
+    "winnable_no_tools": true,
+    "winning_orders": 158588,
+    "winning_orders_capped": false,
+    "peak_dock": 1,
+    "random_win": 0.7834,
+    "states": 603,
+    "path": [
+      {
+        "kind": "rail",
+        "rail": 1
+      },
+      {
+        "kind": "rail",
+        "rail": 1
+      },
+      {
+        "kind": "rail",
+        "rail": 1
+      },
+      {
+        "kind": "rail",
+        "rail": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 2
+      },
+      {
+        "kind": "dock",
+        "slot": 0
+      },
+      {
+        "kind": "dock",
+        "slot": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 2
+      },
+      {
+        "kind": "rail",
+        "rail": 2
+      }
+    ],
+    "exact": true
+  }
+}

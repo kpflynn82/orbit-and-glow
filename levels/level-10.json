@@ -1,0 +1,133 @@
+{
+  "id": "ch01-l10",
+  "name": "Owl",
+  "badge": "starfall",
+  "canvas": [
+    ".O........O.",
+    ".OO......OO.",
+    ".OYOYOYOYOO.",
+    "OOWWWOOWWWOO",
+    "OWWBWWWWBWWO",
+    "OOWWWOOWWWOO",
+    "OYOYOSSOYOYO",
+    "YOYOOSSOOYOY",
+    ".OYOYOYOYOY.",
+    ".YOYOYOYOYO.",
+    "..OYOYOYOY..",
+    "...SS..SS..."
+  ],
+  "rails": [
+    [
+      {
+        "color": "B",
+        "charge": 2
+      },
+      {
+        "color": "O",
+        "charge": 11
+      },
+      {
+        "color": "Y",
+        "charge": 10
+      }
+    ],
+    [
+      {
+        "color": "W",
+        "charge": 8
+      },
+      {
+        "color": "W",
+        "charge": 12
+      },
+      {
+        "color": "O",
+        "charge": 16
+      }
+    ],
+    [
+      {
+        "color": "O",
+        "charge": 13
+      },
+      {
+        "color": "Y",
+        "charge": 16
+      }
+    ],
+    [
+      {
+        "color": "O",
+        "charge": 12
+      },
+      {
+        "color": "S",
+        "charge": 8
+      }
+    ]
+  ],
+  "dock": 2,
+  "ring": 4,
+  "solver": {
+    "winnable_no_tools": true,
+    "winning_orders": 1000000,
+    "winning_orders_capped": true,
+    "peak_dock": 1,
+    "random_win": 0.0501,
+    "states": 47051,
+    "path": [
+      {
+        "kind": "rail",
+        "rail": 1
+      },
+      {
+        "kind": "rail",
+        "rail": 2
+      },
+      {
+        "kind": "rail",
+        "rail": 3
+      },
+      {
+        "kind": "dock",
+        "slot": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 1
+      },
+      {
+        "kind": "rail",
+        "rail": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 2
+      },
+      {
+        "kind": "rail",
+        "rail": 0
+      },
+      {
+        "kind": "dock",
+        "slot": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 1
+      },
+      {
+        "kind": "rail",
+        "rail": 0
+      },
+      {
+        "kind": "dock",
+        "slot": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 3
+      }
+    ]
+  }
+}

@@ -1,0 +1,148 @@
+{
+  "id": "ch01-l11",
+  "name": "Flower",
+  "badge": "normal",
+  "canvas": [
+    "....PPPP....",
+    "..PPPPPPPP..",
+    ".PPPOOOOPPP.",
+    ".PPOYYYYOPP.",
+    ".PPOYWWYOPP.",
+    ".PPOYWWYOPP.",
+    ".PPOYYYYOPP.",
+    ".PPPOOOOPPP.",
+    "..PPPPPPPP..",
+    "....PPGP....",
+    "..GG..G..GG.",
+    "...GGGG.GG.."
+  ],
+  "rails": [
+    [
+      {
+        "color": "W",
+        "charge": 4
+      },
+      {
+        "color": "P",
+        "charge": 14
+      },
+      {
+        "color": "G",
+        "charge": 12
+      }
+    ],
+    [
+      {
+        "color": "Y",
+        "charge": 12
+      },
+      {
+        "color": "P",
+        "charge": 8
+      },
+      {
+        "color": "P",
+        "charge": 8
+      }
+    ],
+    [
+      {
+        "color": "O",
+        "charge": 16
+      },
+      {
+        "color": "P",
+        "charge": 10
+      },
+      {
+        "color": "P",
+        "charge": 11
+      }
+    ]
+  ],
+  "dock": 3,
+  "ring": 4,
+  "solver": {
+    "winnable_no_tools": true,
+    "winning_orders": 1000000,
+    "winning_orders_capped": true,
+    "peak_dock": 2,
+    "random_win": 0.4957,
+    "states": 194244,
+    "path": [
+      {
+        "kind": "rail",
+        "rail": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 2
+      },
+      {
+        "kind": "rail",
+        "rail": 2
+      },
+      {
+        "kind": "rail",
+        "rail": 0
+      },
+      {
+        "kind": "dock",
+        "slot": 1
+      },
+      {
+        "kind": "dock",
+        "slot": 1
+      },
+      {
+        "kind": "dock",
+        "slot": 1
+      },
+      {
+        "kind": "rail",
+        "rail": 2
+      },
+      {
+        "kind": "dock",
+        "slot": 1
+      },
+      {
+        "kind": "dock",
+        "slot": 1
+      },
+      {
+        "kind": "dock",
+        "slot": 1
+      },
+      {
+        "kind": "dock",
+        "slot": 1
+      },
+      {
+        "kind": "rail",
+        "rail": 1
+      },
+      {
+        "kind": "dock",
+        "slot": 0
+      },
+      {
+        "kind": "dock",
+        "slot": 1
+      },
+      {
+        "kind": "rail",
+        "rail": 1
+      },
+      {
+        "kind": "rail",
+        "rail": 1
+      }
+    ],
+    "exact": true
+  }
+}

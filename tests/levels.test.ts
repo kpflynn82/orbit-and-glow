@@ -1,0 +1,53 @@
+// Every shipped level must be valid, winnable, and match what the solver recorded for it.
+import { readdirSync, readFileSync } from 'node:fs';
+import { describe, expect, it } from 'vitest';
+import { applyMove, createState, dustCounts, parseCanvas } from '../src/engine/engine';
+import type { LevelData } from '../src/engine/types';
+
+const files = readdirSync('levels').filter((f) => /^level-\d\d\.json$/.test(f)).sort();
+const levels: LevelData[] = files.map((f) => JSON.parse(readFileSync(`levels/${f}`, 'utf8')));
+
+describe('level set', () => {
+  it('has 20 levels with ids in order', () => {
+    expect(levels.length).toBe(20);
+    levels.forEach((lv, i) => expect(lv.id).toBe(`ch01-l${String(i + 1).padStart(2, '0')}`));
+  });
+
+  it('follows the badge rhythm (5 and 15 tricky, 10 and 20 starfall, the rest normal)', () => {
+    levels.forEach((lv, i) => {
+      const n = i + 1;
+      const want = n % 10 === 0 ? 'starfall' : n % 10 === 5 ? 'tricky' : 'normal';
+      expect(lv.badge, `level ${n}`).toBe(want);
+    });
+  });
+});
+
+describe.each(levels.map((lv) => [lv.id, lv] as const))('%s', (_id, lv) => {
+  it('has a valid picture, rails and Dock', () => {
+    expect(() => parseCanvas(lv.canvas)).not.toThrow();
+    expect(lv.rails.length).toBeGreaterThan(0);
+    expect(lv.dock).toBeGreaterThanOrEqual(2);
+    expect(lv.ring).toBeGreaterThanOrEqual(1);
+    for (const rail of lv.rails) {
+      expect(rail.length).toBeGreaterThan(0);
+      for (const c of rail) expect(c.charge).toBeGreaterThan(0);
+    }
+  });
+
+  it('has enough charge of every color for its dust', () => {
+    const dust = dustCounts(createState(lv));
+    const charge = new Map<string, number>();
+    for (const rail of lv.rails) for (const c of rail) charge.set(c.color, (charge.get(c.color) ?? 0) + c.charge);
+    for (const [color, n] of dust) expect(charge.get(color) ?? 0, color).toBeGreaterThanOrEqual(n);
+  });
+
+  it('is winnable, and the recorded winning path really wins', () => {
+    expect(lv.solver?.winnable_no_tools).toBe(true);
+    let s = createState(lv);
+    for (const m of lv.solver!.path) {
+      expect(s.status).toBe('playing');
+      s = applyMove(s, m).state;
+    }
+    expect(s.status).toBe('won');
+  });
+});

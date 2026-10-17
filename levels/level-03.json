@@ -1,0 +1,89 @@
+{
+  "id": "ch01-l03",
+  "name": "Mushroom",
+  "badge": "normal",
+  "canvas": [
+    "...RRR...",
+    ".RRWRRRR.",
+    "RRRRRRWRR",
+    "RWRRRRRRR",
+    "RRRRRWRRR",
+    "...SSS...",
+    "...SSS...",
+    "...SSS...",
+    "..SSSSS.."
+  ],
+  "rails": [
+    [
+      {
+        "color": "R",
+        "charge": 14
+      },
+      {
+        "color": "R",
+        "charge": 12
+      }
+    ],
+    [
+      {
+        "color": "R",
+        "charge": 7
+      },
+      {
+        "color": "S",
+        "charge": 14
+      }
+    ],
+    [
+      {
+        "color": "W",
+        "charge": 4
+      }
+    ]
+  ],
+  "dock": 4,
+  "ring": 4,
+  "solver": {
+    "winnable_no_tools": true,
+    "winning_orders": 562,
+    "winning_orders_capped": false,
+    "peak_dock": 1,
+    "random_win": 1,
+    "states": 173,
+    "path": [
+      {
+        "kind": "rail",
+        "rail": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 0
+      },
+      {
+        "kind": "dock",
+        "slot": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 1
+      },
+      {
+        "kind": "rail",
+        "rail": 2
+      },
+      {
+        "kind": "dock",
+        "slot": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 1
+      },
+      {
+        "kind": "dock",
+        "slot": 0
+      }
+    ],
+    "exact": true
+  }
+}

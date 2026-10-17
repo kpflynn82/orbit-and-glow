@@ -1,0 +1,35 @@
+# Orbit & Glow
+
+A color-sort puzzle prototype: send comets around a night-sky orbit to clear a picture made of
+stardust. Designed in [gamecrafter](https://github.com/kpflynn82/gamecrafter)
+(`prototype-specs/orbit-and-glow.md`); built web-first so it plays from a link on a phone.
+
+**Status: M1 — gray box.** Orbit, rails, Dock, order-only rules, both kinds of stuck, free retry,
+color-blind glyphs, 20 solver-checked levels. No fusion, art or sound yet. See `docs/brief.md`.
+
+## How to play
+
+Tap the front comet on a rail. It flies one lap around the orbit and clears every speck of its
+color that it can see from the edge (only the first speck in each row or column). If it still has
+charge after the lap, it parks in the Dock; tap it there to send it again later. Clear the whole
+picture to win. If a comet has to park and the Dock is full, you're stuck — retry is free.
+Nothing depends on how fast you tap; only the order matters.
+
+## Running it
+
+You need Node.js 22. Then:
+
+```
+npm install
+npm run dev        # open the printed address; on a phone on the same Wi-Fi use the Network one
+npm test           # rules and level checks
+npm run bot        # a bot plays every level (solver path + random games)
+```
+
+More commands and the project rules are in `CLAUDE.md`. What went wrong and what we learned is
+in `LESSONS.md`.
+
+## Deploying (Vercel)
+
+The repo includes `vercel.json`. On vercel.com: Add New → Project → import
+`kpflynn82/orbit-and-glow` → Deploy. Every push to `main` then updates the phone link.

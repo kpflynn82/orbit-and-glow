@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+    <meta name="theme-color" content="#0B1026" />
+    <title>Orbit &amp; Glow</title>
+    <style>
+      /* One dark look on purpose (a night sky), so no light theme. */
+      :root { --sky-top: #0B1026; --sky-bottom: #1E2A5E; color-scheme: dark; }
+      html, body { margin: 0; height: 100%; overflow: hidden; touch-action: none; overscroll-behavior: none; }
+      /* Matches the game's sky so the bands above and below the game blend in on tall phones. */
+      body { background: linear-gradient(to bottom, var(--sky-top) 0%, var(--sky-top) 12%, var(--sky-bottom) 88%, var(--sky-bottom) 100%); }
+      /* Keep the game clear of the phone's notch and home bar. */
+      #game {
+        position: fixed;
+        top: env(safe-area-inset-top, 0px);
+        right: env(safe-area-inset-right, 0px);
+        bottom: env(safe-area-inset-bottom, 0px);
+        left: env(safe-area-inset-left, 0px);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="game"></div>
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>
