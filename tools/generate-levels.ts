@@ -15,9 +15,11 @@
 // Difficulty number: `random_win`, the chance that a player tapping uniformly at random wins.
 // Real players are far better than random, so this is a relative ruler, not a prediction.
 //
-// Run: npm run levels   (writes levels/level-01.json … level-20.json; ONLY=3,4 for some levels)
+// Run: npm run levels   (writes any missing levels/level-NN.json; ONLY=3,4 for some levels)
+// Existing level files are never overwritten unless FORCE=1 — players may already know them, and
+// the generator has changed since some were made (levels 5 and 10 came from an earlier version).
 
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { createState, firstCellAlong, lapSteps, parseCanvas } from '../src/engine/engine';
 import { analyzeLevel, findWin, sampleLevel, TooManyStates } from '../src/engine/solver';
 import type { Badge, Color, Comet, LevelData } from '../src/engine/types';
@@ -54,7 +56,8 @@ const PLANS: Plan[] = [
   { picture: 'House', badge: 'normal', rails: 4, dock: 3, charge: [7, 16], target: [0.2, 0.6] },
   { picture: 'Planet', badge: 'normal', rails: 4, dock: 3, charge: [8, 18], target: [0.2, 0.6] },
   { picture: 'Snail', badge: 'tricky', rails: 4, dock: 3, charge: [7, 16], target: [0.08, 0.25] },
-  { picture: 'Kite', badge: 'normal', rails: 4, dock: 3, charge: [8, 18], target: [0.2, 0.55] },
+  // A breather after Tricky level 15.
+  { picture: 'Kite', badge: 'normal', rails: 4, dock: 3, altDock: 3, charge: [8, 18], target: [0.55, 0.8] },
   { picture: 'Cupcake', badge: 'normal', rails: 4, dock: 3, charge: [8, 18], target: [0.15, 0.5] },
   { picture: 'Butterfly', badge: 'normal', rails: 4, dock: 3, charge: [8, 18], target: [0.15, 0.5] },
   { picture: 'Lighthouse', badge: 'normal', rails: 4, dock: 3, charge: [8, 18], target: [0.15, 0.5] },
@@ -248,6 +251,11 @@ function main() {
   const only = process.env.ONLY ? new Set(process.env.ONLY.split(',').map(Number)) : null; // e.g. ONLY=3,4
   PLANS.forEach((plan, i) => {
     if (only && !only.has(i + 1)) return;
+    const file = `levels/level-${String(i + 1).padStart(2, '0')}.json`;
+    if (existsSync(file) && !process.env.FORCE) {
+      console.log(`${String(i + 1).padStart(2)} ${plan.picture.padEnd(11)} kept (${file} exists; FORCE=1 to rebuild it)`);
+      return;
+    }
     const t0 = Date.now();
     let built = buildLevel(i, plan, plan.dock);
     const alt = plan.altDock ?? Math.max(2, plan.dock - 1);
@@ -258,7 +266,6 @@ function main() {
     if (!Number.isFinite(built.s)) throw new Error(`no winnable layout for level ${i + 1}`);
     const level: LevelData = { ...built.level, solver: analyzeLevel(built.level, 400_000) };
     const inBand = level.solver!.random_win >= plan.target[0] && level.solver!.random_win <= plan.target[1];
-    const file = `levels/level-${String(i + 1).padStart(2, '0')}.json`;
     writeFileSync(file, JSON.stringify(level, null, 2) + '\n');
     const r = level.solver!;
     const { w, h } = parseCanvas(level.canvas);

@@ -67,8 +67,8 @@
       "stuckDockFull": 970,
       "stuckDeadEnd": 0,
       "doomedGames": 970,
-      "silentDoomAvg": 1.3154639175257732,
-      "silentDoomMax": 25,
+      "silentDoomAvg": 0.4711340206185567,
+      "silentDoomMax": 4,
       "errors": []
     },
     {
@@ -95,8 +95,8 @@
       "stuckDockFull": 517,
       "stuckDeadEnd": 0,
       "doomedGames": 517,
-      "silentDoomAvg": 1.3133462282398454,
-      "silentDoomMax": 15,
+      "silentDoomAvg": 0.2804642166344294,
+      "silentDoomMax": 2,
       "errors": []
     },
     {
@@ -137,8 +137,8 @@
       "stuckDockFull": 1415,
       "stuckDeadEnd": 0,
       "doomedGames": 1415,
-      "silentDoomAvg": 0.36395759717314485,
-      "silentDoomMax": 16,
+      "silentDoomAvg": 0.1674911660777385,
+      "silentDoomMax": 6,
       "errors": []
     },
     {
@@ -207,8 +207,8 @@
       "stuckDockFull": 1146,
       "stuckDeadEnd": 0,
       "doomedGames": 1146,
-      "silentDoomAvg": 1.4031413612565444,
-      "silentDoomMax": 22,
+      "silentDoomAvg": 0.7914485165794066,
+      "silentDoomMax": 6,
       "errors": []
     },
     {
@@ -216,11 +216,11 @@
       "name": "Kite",
       "badge": "normal",
       "pathWins": true,
-      "randomWin": 0.32866666666666666,
-      "solverRandomWin": 0.3678,
-      "stuckDockFull": 1007,
+      "randomWin": 0.7473333333333333,
+      "solverRandomWin": 0.7593,
+      "stuckDockFull": 379,
       "stuckDeadEnd": 0,
-      "doomedGames": 1007,
+      "doomedGames": 379,
       "silentDoomAvg": 0,
       "silentDoomMax": 0,
       "errors": []
@@ -235,8 +235,8 @@
       "stuckDockFull": 842,
       "stuckDeadEnd": 0,
       "doomedGames": 842,
-      "silentDoomAvg": 0.023752969121140142,
-      "silentDoomMax": 7,
+      "silentDoomAvg": 0.0035629453681710215,
+      "silentDoomMax": 1,
       "errors": []
     },
     {
@@ -277,8 +277,8 @@
       "stuckDockFull": 1414,
       "stuckDeadEnd": 0,
       "doomedGames": 1414,
-      "silentDoomAvg": 0.6117397454031117,
-      "silentDoomMax": 9,
+      "silentDoomAvg": 0.2079207920792079,
+      "silentDoomMax": 3,
       "errors": []
     }
   ]

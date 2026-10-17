@@ -41,7 +41,7 @@ the source of truth); the full GDD lives there too (`design-docs/gdd-orbit-and-g
 | `src/engine/` | The rules (`engine.ts`) and the solver (`solver.ts`). Plain TypeScript, no Phaser, so tests, tools and the bot run the exact same rules as the game |
 | `src/game/` | The Phaser screen: drawing, animation, HUD, overlays. Never decides an outcome |
 | `levels/` | One JSON file per level, each with its solver report |
-| `tools/` | `pictures.ts` (gray-box pictures), `generate-levels.ts`, `solve-all.ts`, `inline-build.mjs` |
+| `tools/` | `pictures.ts` (gray-box pictures), `generate-levels.ts`, `solve-all.ts`, `bench-16.ts`, `inline-build.mjs` |
 | `playtest/` | `bot.ts` (headless rules check + random games), `screens.ts` (plays in a real browser, saves screenshots) |
 | `tests/` | Rules tests and level checks (Vitest) |
 | `art/` | Codex deliveries (from M2) |
@@ -50,14 +50,17 @@ the source of truth); the full GDD lives there too (`design-docs/gdd-orbit-and-g
 
 ```
 npm install           once
-npm run dev           play locally at the printed address (add ?canvas to force the Canvas renderer)
+npm run dev           play locally; a phone on the same Wi-Fi can open the printed Network address
+                      (add ?canvas to force the Canvas renderer)
 npm test              rules + level tests
 npm run solve         re-solve every level and compare with its saved report (WRITE=1 to refresh)
 npm run bot           headless bot: solver paths + random games, writes playtest/bot-report.json
 npm run build         type-check and build dist/ (what Vercel serves)
 npm run screens       after a build: plays every level in a phone-sized browser, saves screenshots
 npm run build:single  one self-contained HTML file in dist-single/ (for a shareable phone link)
-npm run levels        regenerate levels (slow; ONLY=7 for one level; overwrites level files)
+npm run levels        build any missing level files (ONLY=7 for one level; FORCE=1 to rebuild an
+                      existing one — never for a level Kevin has played)
+npm run bench         times the solver on three 16x16 boards (the M1 "in seconds" check)
 ```
 
 ## Done means (every change)

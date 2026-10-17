@@ -5,9 +5,15 @@
 //   2. plays many random games, checking at every step that
 //      - "won" appears exactly when the last dust is cleared,
 //      - every "stuck" the game reports really is unwinnable (it always should be), and
-//      - counting the "silent doom" moves: moves a player made after the level was already
-//        lost but before the game said "Stuck". These aren't bugs, but a high number means
+//      - "stuck" never appears with no dust left, and
+//      - counting the "silent doom" moves: launches a player made after the level was already
+//        lost but before the game said "Stuck" (relaunching a docked comet that hits nothing
+//        doesn't count — it changes nothing). These aren't bugs, but a high number means
 //        players will feel cheated, so it's a design signal for Kevin.
+//
+// "random-tapper win" here = picking uniformly among every tappable comet. The solver's
+// random_win picks among its distinct useful moves (two identical docked comets count once,
+// a docked comet that would hit nothing is skipped), so the two differ by a few points.
 //
 // Usage: npm run bot            (all levels, 1500 random games each)
 //        GAMES=200 npm run bot  (quicker)
@@ -73,19 +79,24 @@ for (const [i, f] of files.entries()) {
   let silentMax = 0;
   for (let g = 0; g < GAMES; g++) {
     let st = createState(lv);
-    let doomAt = -1;
-    let moves = 0;
+    let doomAt = -1; // count of real launches when the level became unwinnable
+    let moves = 0; // every tap
+    let real = 0; // taps that changed the board
     while (st.status === 'playing' && moves < MAX_MOVES) {
-      if (doomAt < 0 && solver.node(st).ways === 0) doomAt = moves;
+      if (doomAt < 0 && solver.node(st).ways === 0) doomAt = real;
       const legal = legalMoves(st);
       if (legal.length === 0) {
         errors.push(`game ${g}: no legal moves but status is "playing"`);
         break;
       }
-      st = applyMove(st, legal[Math.floor(rand() * legal.length)]).state;
+      const m = legal[Math.floor(rand() * legal.length)];
+      const { state: next, result } = applyMove(st, m);
+      st = next;
       moves++;
+      if (!(m.kind === 'dock' && result.shots.length === 0)) real++;
       if (st.status === 'won' && hasDust(st)) errors.push(`game ${g}: "won" with dust left`);
       if (st.status === 'playing' && !hasDust(st)) errors.push(`game ${g}: no dust left but not "won"`);
+      if (st.status === 'stuck' && !hasDust(st)) errors.push(`game ${g}: "stuck" with no dust left`);
     }
     if (moves >= MAX_MOVES) {
       // Only possible by relaunching docked comets that hit nothing; not a rules bug.
@@ -97,9 +108,9 @@ for (const [i, f] of files.entries()) {
     } else {
       if (st.stuckReason === 'dock-full') dockFull++;
       else deadEnd++;
-      if (doomAt < 0) doomAt = moves; // doomed by the very last move
+      if (doomAt < 0) doomAt = real; // doomed by the very last move
       doomed++;
-      const silent = moves - doomAt - 1; // moves made after doom, not counting the one that showed "Stuck"
+      const silent = real - doomAt - 1; // launches after doom, not counting the one that showed "Stuck"
       silentSum += Math.max(0, silent);
       silentMax = Math.max(silentMax, silent);
     }
@@ -123,7 +134,7 @@ for (const [i, f] of files.entries()) {
   rows.push(row);
   console.log(
     `${String(row.n).padStart(2)} ${row.name.padEnd(11)} ${row.badge.padEnd(8)} path=${pathWins ? 'WIN ' : 'FAIL'} ` +
-      `random-win=${(row.randomWin * 100).toFixed(1).padStart(5)}% (solver est ${(row.solverRandomWin * 100).toFixed(1)}%) ` +
+      `random-tapper win=${(row.randomWin * 100).toFixed(1).padStart(5)}% (solver random_win ${(row.solverRandomWin * 100).toFixed(1)}%) ` +
       `stuck: dock-full ${dockFull}, dead-end ${deadEnd}; silent-doom avg ${row.silentDoomAvg.toFixed(2)} max ${silentMax}` +
       (row.errors.length ? `  ERRORS: ${row.errors.join('; ')}` : ''),
   );

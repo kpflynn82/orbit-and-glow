@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Orbit & Glow — a color-sort puzzle prototype (gamecrafter). Web-first gray box.",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "build": "tsc --noEmit && vite build",
     "build:single": "tsc --noEmit && vite build --mode single && node tools/inline-build.mjs",
     "preview": "vite preview",

@@ -13,6 +13,7 @@ Tap the front comet on a rail. It flies one lap around the orbit and clears ever
 color that it can see from the edge (only the first speck in each row or column). If it still has
 charge after the lap, it parks in the Dock; tap it there to send it again later. Clear the whole
 picture to win. If a comet has to park and the Dock is full, you're stuck — retry is free.
+Tap several comets quickly and they wait their turn beside the gate, one lap at a time.
 Nothing depends on how fast you tap; only the order matters.
 
 ## Running it
@@ -21,7 +22,7 @@ You need Node.js 22. Then:
 
 ```
 npm install
-npm run dev        # open the printed address; on a phone on the same Wi-Fi use the Network one
+npm run dev        # open the printed Local address; a phone on the same Wi-Fi can use the Network one
 npm test           # rules and level checks
 npm run bot        # a bot plays every level (solver path + random games)
 ```

@@ -27,7 +27,11 @@ export interface SolverReport {
   winning_orders_capped: boolean;
   /** Fewest Dock slots in use at once on the best winning path. */
   peak_dock: number;
-  /** Chance a player who taps uniformly at random wins — a rough difficulty number. */
+  /**
+   * Chance a player who picks uniformly at random among the solver's distinct useful moves wins
+   * (identical docked comets count once; a docked comet that would hit nothing is skipped).
+   * A rough difficulty ruler: real players do far better than random.
+   */
   random_win: number;
   /** Distinct board states the solver visited. */
   states: number;
@@ -35,7 +39,8 @@ export interface SolverReport {
   path: Move[];
   /**
    * true (or missing) = every order was counted. false = big board: one win was found and proven,
-   * and winning_orders / random_win are estimates from random games; peak_dock is for the path found.
+   * and winning_orders / random_win are estimates from random games (winning_orders is at least 1,
+   * the order that was found); peak_dock is for the path found.
    */
   exact?: boolean;
 }

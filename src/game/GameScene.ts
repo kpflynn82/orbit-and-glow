@@ -2,7 +2,13 @@
 //
 // Logic is resolved the instant a comet is launched (order, not timing). The animation then
 // replays what happened: the comet rides the oval orbit and each shot fires when it passes the
-// row or column it hit. All comets fly at the same speed, so what you see always matches the rules.
+// row or column it hit.
+//
+// Only one comet is on the orbit at a time. Comets tapped while another is flying wait their turn
+// beside the entry gate (up to the level's ring capacity) and the lap speeds up while others wait.
+// That keeps the picture honest: the rules resolve each lap against the board as the earlier
+// comets leave it, so letting laps overlap on screen would show comets firing through blocks
+// that hadn't cleared yet, or passing cells of their color without firing.
 
 import Phaser from 'phaser';
 import { applyMove, cometFor, createState, lapSteps } from '../engine/engine';
@@ -16,6 +22,7 @@ export const GAME_W = 720;
 export const GAME_H = 1280;
 
 const LAP_MS = 1900;
+const LAP_FAST_MS = 1150; // when other comets are waiting their turn
 const ENTRY_MS = 220;
 const PARK_MS = 260;
 const FRONT_R = 34;
@@ -59,6 +66,8 @@ export class GameScene extends Phaser.Scene {
   private overlay: Phaser.GameObjects.Container | null = null;
   private generation = 0; // bumps on every level load; stale animations check it
   private skyStars = new Set<unknown>();
+  private orbitBusy = false;
+  private waiting: { comet: Phaser.GameObjects.Container; run: () => void }[] = [];
 
   constructor() {
     super('game');
@@ -84,6 +93,8 @@ export class GameScene extends Phaser.Scene {
     this.level = LEVELS[index];
     this.state = createState(this.level);
     this.inFlight = 0;
+    this.orbitBusy = false;
+    this.waiting = [];
     this.pendingDock.clear();
     // Stop the last level's animations, but keep the background stars twinkling.
     for (const t of this.tweens.getTweens()) {
@@ -284,13 +295,15 @@ export class GameScene extends Phaser.Scene {
       this.hud.add(t);
     }
     const mk = (x: number, label: string, fn: () => void) => {
-      const bg = this.add.circle(x, 46, 30, 0xffffff, 0.08).setStrokeStyle(2, PAL.orbit, 0.5).setInteractive({ useHandCursor: true });
-      const t = this.add.text(x, 46, label, { ...style, fontSize: '30px' }).setOrigin(0.5);
-      bg.on('pointerdown', fn);
-      this.hud.add([bg, t]);
+      const bg = this.add.circle(x, 48, 32, 0xffffff, 0.08).setStrokeStyle(2, PAL.orbit, 0.5);
+      const t = this.add.text(x, 48, label, { ...style, fontSize: '32px' }).setOrigin(0.5);
+      // The tap area is larger than the drawn circle (about 48 points on a phone).
+      const hit = this.add.circle(x, 48, 44, 0xffffff, 0.001).setInteractive({ useHandCursor: true });
+      hit.on('pointerdown', fn);
+      this.hud.add([bg, t, hit]);
     };
-    mk(GAME_W - 46, '↻', () => this.loadLevel(this.levelIndex));
-    mk(GAME_W - 116, '≡', () => this.showLevelMenu());
+    mk(GAME_W - 52, '↻', () => this.loadLevel(this.levelIndex));
+    mk(GAME_W - 144, '≡', () => this.showLevelMenu());
   }
 
   // ───────────────────────────── playing ─────────────────────────────
@@ -363,11 +376,14 @@ export class GameScene extends Phaser.Scene {
     return { x, y, theta };
   }
 
+  /** Where the k-th waiting comet sits, just inside the orbit above the entry gate. */
+  private waitSpot(k: number): { x: number; y: number } {
+    return { x: this.L.cx + (k - 1) * 66, y: this.L.cy + this.L.b - 80 };
+  }
+
   private animateLaunch(comet: Phaser.GameObjects.Container, result: LaunchResult): void {
     const gen = this.generation;
     this.inFlight++;
-    const { cx, cy, a, b } = this.L;
-    const steps = lapSteps(this.state.w, this.state.h);
 
     // Claimed cells glow faintly until they're hit.
     for (const s of result.shots) {
@@ -382,10 +398,34 @@ export class GameScene extends Phaser.Scene {
       v.claim = claim;
     }
 
+    const run = () => this.flyLap(comet, result, gen);
+    if (!this.orbitBusy && this.waiting.length === 0) {
+      this.orbitBusy = true;
+      run();
+    } else {
+      // Wait beside the gate for the comet ahead to finish its lap.
+      const spot = this.waitSpot(this.waiting.length);
+      this.waiting.push({ comet, run });
+      this.tweens.add({ targets: comet, x: spot.x, y: spot.y, scale: 0.8, duration: ENTRY_MS, ease: 'Quad.easeOut' });
+    }
+  }
+
+  private nextInLine(): void {
+    const next = this.waiting.shift();
+    if (!next) return;
+    this.orbitBusy = true;
+    this.waiting.forEach((w, k) => this.tweens.add({ targets: w.comet, ...this.waitSpot(k), duration: 200, ease: 'Quad.easeOut' }));
+    next.run();
+  }
+
+  private flyLap(comet: Phaser.GameObjects.Container, result: LaunchResult, gen: number): void {
+    const { cx, cy, a, b } = this.L;
+    const steps = lapSteps(this.state.w, this.state.h);
     this.tweens.add({
       targets: comet,
       x: cx,
       y: cy + b,
+      scale: 1,
       duration: ENTRY_MS,
       ease: 'Quad.easeOut',
       onComplete: () => {
@@ -405,21 +445,33 @@ export class GameScene extends Phaser.Scene {
             this.fireShot(comet, s.x, s.y);
           }
         };
+        let done = false;
+        const finish = () => {
+          done = true;
+          this.orbitBusy = false;
+          this.finishLap(comet, result);
+          this.nextInLine();
+        };
         this.tweens.addCounter({
           from: 0,
           to: 1,
-          duration: LAP_MS,
+          duration: this.waiting.length > 0 ? LAP_FAST_MS : LAP_MS,
           onUpdate: (tw) => {
-            if (gen !== this.generation) return;
+            if (gen !== this.generation || done) return;
             const v = tw.getValue() ?? 0;
             const th = Math.PI / 2 + v * Math.PI * 2;
             comet.setPosition(cx + a * Math.cos(th), cy + b * Math.sin(th));
             fireUpTo(v);
+            // Out of charge: it bursts right after its last hit instead of finishing the lap.
+            if (result.leftover === 0 && next === shots.length) {
+              tw.stop();
+              finish();
+            }
           },
           onComplete: () => {
-            if (gen !== this.generation) return;
+            if (gen !== this.generation || done) return;
             fireUpTo(1);
-            this.finishLap(comet, result);
+            finish();
           },
         });
       },
@@ -472,8 +524,9 @@ export class GameScene extends Phaser.Scene {
         },
       });
     } else if (result.leftover > 0) {
-      // Couldn't park: the Dock was full. Leave it hovering at the gate, dimmed.
-      comet.setAlpha(0.6);
+      // Couldn't park: the Dock was full. It hovers just inside the gate, dimmed, above the Dock.
+      const spot = this.waitSpot(1);
+      this.tweens.add({ targets: comet, x: spot.x, y: spot.y, alpha: 0.6, duration: PARK_MS, ease: 'Quad.easeOut' });
       this.landed();
     } else {
       this.burst(comet.x, comet.y, COLOR_HEX[result.comet.color]);

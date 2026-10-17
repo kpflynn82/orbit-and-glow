@@ -16,17 +16,24 @@ section. Read this before starting work; the next prototype reads it before it s
 - Counting every winning order runs out of memory on 16×16 boards with 10+ comets. Big boards now
   get one proven win (found in milliseconds by trying the most promising launches first) plus
   estimates from 10,000 random games, marked `exact: false` in the report.
+- Reviewer: `applyMove` checks "Dock full" before "won", so clearing the last dust with charge left
+  and a full Dock would say Stuck. Can't happen in M1 (charges match dust exactly); needs Kevin's
+  OK to change before fusion or tools arrive. The bot now flags "stuck with no dust left".
 
 ## Level design
 
 - Difficulty comes mostly from the picture, not the deal. Flat pictures (a solid heart, a solid
   fish) give levels a random tapper can't lose, whatever the Dock size. Colors hidden behind other
-  colors (stripes, outlines, rings, spots) are what make order matter. Six pictures were redrawn
+  colors (stripes, outlines, rings, spots) are what make order matter. Nine pictures were redrawn
   with layers for this reason; the rule is now in `art/README.md` for Codex.
 - The GDD's default Dock of 4 is very forgiving with these rules. Most M1 levels use 3, hard ones 2.
   Dock size is the strongest difficulty dial after the picture. (For Kevin to judge on the phone.)
 - Searching layouts with a full solve per try was slow (up to 7 minutes a level). The generator
   now checks each try with one proven win plus 1,500 random games, and fully solves only the pick.
+- Reviewer: level 16 should be a breather after Tricky 15 but was the second-hardest normal level.
+  Rebuilt it easier (random_win 0.76) before Kevin played it. The generator now refuses to
+  overwrite an existing level file without FORCE=1 (it would no longer rebuild levels 5 and 10
+  as shipped).
 
 ## Game screen
 
@@ -36,6 +43,14 @@ section. Read this before starting work; the next prototype reads it before it s
   the level's own animations are stopped.
 - Gradient fills only work with WebGL; the sky is now painted once onto a canvas texture so it looks
   the same with either renderer.
+- Reviewer: with several comets on the orbit at once, the picture could contradict the rules — a
+  later comet firing through a block an earlier one hadn't cleared yet, or an earlier comet passing
+  a newly uncovered cell of its color without firing. Results were right; the picture lied. Now one
+  comet flies at a time, the others wait by the gate, and the lap speeds up while others wait.
+- Reviewer: the comet that can't park hovered on top of the middle Dock slot; it now hovers just
+  inside the gate. HUD buttons got tap areas of about 48 points (were about 32).
+- A comet with no charge left kept flying an empty lap, which held up the comets waiting behind it.
+  It now bursts right after its last hit. (A feel choice for Kevin to judge on the phone.)
 
 ## Testing and tooling
 
@@ -47,3 +62,8 @@ section. Read this before starting work; the next prototype reads it before it s
   (`__name`) that doesn't exist in the page. Pass a string of code for anything with inner functions.
 - `npm audit` flagged Vitest 3 and vite-plugin-singlefile (through dependencies). Moved to Vitest 5
   and replaced the plugin with a 30-line script (`tools/inline-build.mjs`). Audit is clean.
+- Reviewer: the single-file build had no charset, so ≡ and ↻ turned into garbage when a host didn't
+  declare UTF-8. The build now escapes every non-ASCII character and checks the file is pure ASCII.
+- Reviewer: the bot's "silent doom" count included taps on docked comets that hit nothing. It now
+  counts only launches that change the board.
+- Reviewer: `npm run dev` didn't print a Network address for phones; it now runs with `--host`.

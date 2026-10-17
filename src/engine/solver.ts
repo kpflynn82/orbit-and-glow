@@ -207,7 +207,7 @@ export function sampleLevel(start: GameState, games = 10_000, seed = 7): { rando
  * The solver for any board size: an exact count when the board is small enough (under
  * `exactCap` states), otherwise one proven win plus estimates. `report.exact` says which.
  */
-export function analyzeLevel(level: LevelData, exactCap = 50_000, searchBudget = 1_000_000): SolverReport {
+export function analyzeLevel(level: LevelData, exactCap = 20_000, searchBudget = 1_000_000): SolverReport {
   try {
     return { ...solveLevel(level, exactCap), exact: true };
   } catch (e) {
@@ -227,6 +227,7 @@ export function analyzeLevel(level: LevelData, exactCap = 50_000, searchBudget =
   const est = sampleLevel(start);
   return {
     winnable_no_tools: true,
+    // An estimate; never below 1, because one winning order was found and checked.
     winning_orders: Math.max(1, Math.round(Math.min(est.ordersEstimate, WAYS_CAP))),
     winning_orders_capped: est.ordersEstimate >= WAYS_CAP,
     peak_dock: peak, // on the path found, not necessarily the lowest possible

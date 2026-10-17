@@ -20,22 +20,22 @@
   "rails": [
     [
       {
-        "color": "G",
-        "charge": 1
-      },
-      {
         "color": "P",
-        "charge": 13
-      }
-    ],
-    [
-      {
-        "color": "R",
-        "charge": 13
+        "charge": 8
       },
       {
         "color": "B",
-        "charge": 18
+        "charge": 16
+      }
+    ],
+    [
+      {
+        "color": "P",
+        "charge": 13
+      },
+      {
+        "color": "R",
+        "charge": 13
       }
     ],
     [
@@ -43,31 +43,31 @@
         "color": "R",
         "charge": 8
       },
-      {
-        "color": "P",
-        "charge": 8
-      }
-    ],
-    [
       {
         "color": "Y",
         "charge": 15
-      },
+      }
+    ],
+    [
       {
         "color": "B",
-        "charge": 9
+        "charge": 11
+      },
+      {
+        "color": "G",
+        "charge": 1
       }
     ]
   ],
-  "dock": 2,
+  "dock": 3,
   "ring": 4,
   "solver": {
     "winnable_no_tools": true,
     "winning_orders": 1000000,
     "winning_orders_capped": true,
     "peak_dock": 1,
-    "random_win": 0.3678,
-    "states": 7638,
+    "random_win": 0.7593,
+    "states": 11863,
     "path": [
       {
         "kind": "rail",
@@ -102,24 +102,28 @@
         "rail": 1
       },
       {
+        "kind": "dock",
+        "slot": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 3
+      },
+      {
+        "kind": "rail",
+        "rail": 3
+      },
+      {
+        "kind": "dock",
+        "slot": 0
+      },
+      {
         "kind": "rail",
         "rail": 2
       },
       {
         "kind": "dock",
         "slot": 0
-      },
-      {
-        "kind": "rail",
-        "rail": 3
-      },
-      {
-        "kind": "dock",
-        "slot": 0
-      },
-      {
-        "kind": "rail",
-        "rail": 3
       }
     ],
     "exact": true

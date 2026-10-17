@@ -114,6 +114,15 @@ async function main(): Promise<void> {
   await page.screenshot({ path: `${SHOTS}/02-comet-in-flight.png` });
   await waitFor(page, 'window.__orbit.flying() === 0');
 
+  // Quick taps: the first three launches of level 9 tapped fast, so two comets wait by the gate.
+  const lv9 = levels[8];
+  await page.evaluate(() => window.__orbit!.load(8));
+  await page.waitForTimeout(300);
+  for (const m of lv9.solver!.path.slice(0, 3)) if (m.kind === 'rail') await tap(page, m);
+  await page.waitForTimeout(700);
+  await page.screenshot({ path: `${SHOTS}/02b-comets-waiting-their-turn.png` });
+  await waitFor(page, 'window.__orbit.flying() === 0');
+
   const results: string[] = [];
   let failures = 0;
   for (const [i, lv] of levels.entries()) {
@@ -176,8 +185,8 @@ async function main(): Promise<void> {
 async function menuPoint(page: Page): Promise<[number, number]> {
   const box = await page.locator('canvas').boundingBox();
   if (!box) throw new Error('no canvas');
-  // The ≡ button sits at game (604, 46) on a 720×1280 canvas.
-  return [box.x + (604 / 720) * box.width, box.y + (46 / 1280) * box.height];
+  // The ≡ button sits at game (576, 48) on a 720×1280 canvas.
+  return [box.x + (576 / 720) * box.width, box.y + (48 / 1280) * box.height];
 }
 
 main().catch((e) => {
