@@ -66,7 +66,7 @@
     "winning_orders_capped": false,
     "peak_dock": 2,
     "random_win": 0.2813,
-    "states": 1464,
+    "states": 681,
     "path": [
       {
         "kind": "rail",
@@ -127,6 +127,6 @@
       }
     ],
     "exact": true,
-    "sensible_win": 0.52
+    "sensible_win": 0.515
   }
 }

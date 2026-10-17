@@ -320,7 +320,10 @@ export class GameScene extends Phaser.Scene {
     const view = this.dockViews[d.slot];
     const home = this.L.dock[d.slot];
     if (view) this.tweens.add({ targets: view, x: home.x, y: home.y, duration: 160, ease: 'Quad.easeOut' });
-    if (target >= 0 && this.state.dock[target]) this.showHint('Only two different colors of Red, Yellow and Blue can fuse.');
+    if (target >= 0 && this.state.dock[target]) {
+      if (this.pendingDock.has(target) || this.pendingDock.has(d.slot)) this.showHint('Wait for that comet to land, then fuse.');
+      else this.showHint('Only two different colors of Red, Yellow and Blue can fuse.');
+    }
   }
 
   private refreshDockSlots(): void {
@@ -346,11 +349,17 @@ export class GameScene extends Phaser.Scene {
         if (!canFuse(this.state, i, j) || this.pendingDock.has(i) || this.pendingDock.has(j)) continue;
         const a = this.L.dock[i];
         const b = this.L.dock[j];
-        lg.lineStyle(4, 0xffffff, this.state.holding ? 0.55 : 0.22);
-        lg.beginPath();
-        lg.moveTo(a.x, a.y);
-        lg.lineTo(b.x, b.y);
-        lg.strokePath();
+        lg.lineStyle(4, 0xffffff, this.state.holding ? 0.6 : 0.35);
+        if (j === i + 1) {
+          lg.beginPath();
+          lg.moveTo(a.x, a.y);
+          lg.lineTo(b.x, b.y);
+          lg.strokePath();
+        } else {
+          // Not neighbours: arc below the Dock so the link doesn't run through the comet between.
+          const mid = new Phaser.Math.Vector2((a.x + b.x) / 2, Math.max(a.y, b.y) + 58 + (j - i) * 6);
+          new Phaser.Curves.QuadraticBezier(new Phaser.Math.Vector2(a.x, a.y + FRONT_R), mid, new Phaser.Math.Vector2(b.x, b.y + FRONT_R)).draw(lg, 24);
+        }
       }
   }
 
@@ -402,9 +411,15 @@ export class GameScene extends Phaser.Scene {
     this.hud.add(this.hintText);
   }
 
-  private fadeTip(): void {
+  /** The coach tip fades on the first move — or, on levels that teach fusion, dims and stays
+   *  until the first fusion (fusion is often needed many launches in). */
+  private fadeTip(trigger: 'launch' | 'fuse' = 'launch'): void {
     const t = this.tipText;
     if (!t) return;
+    if (this.level.tipUntil === 'fuse' && trigger !== 'fuse') {
+      if (t.alpha > 0.7) this.tweens.add({ targets: t, alpha: 0.6, duration: 400 });
+      return;
+    }
     this.tipText = null;
     this.tweens.add({ targets: t, alpha: 0, duration: 500, onComplete: () => t.destroy() });
   }
@@ -484,7 +499,7 @@ export class GameScene extends Phaser.Scene {
     const { state, result } = applyMove(this.state, { kind: 'fuse', from, onto });
     const fr = result as FuseResult;
     this.state = state;
-    this.fadeTip();
+    this.fadeTip('fuse');
     this.fusing++;
     this.dockViews[from] = null;
     this.pendingDock.add(onto);

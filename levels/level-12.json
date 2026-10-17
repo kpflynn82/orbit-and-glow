@@ -78,7 +78,6 @@
   ],
   "dock": 3,
   "ring": 4,
-  "fusion": true,
   "solver": {
     "winnable_no_tools": true,
     "winning_orders": 1000000,

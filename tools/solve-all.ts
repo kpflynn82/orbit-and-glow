@@ -20,7 +20,9 @@ for (const f of files) {
     old.peak_dock === r.peak_dock &&
     old.random_win === r.random_win &&
     old.sensible_win === r.sensible_win;
-  const flag = !r.winnable_no_tools ? 'UNWINNABLE' : !r.exact ? 'ok (estimated: too big to count)' : same ? 'ok' : 'CHANGED';
+  // Big boards: the counts are estimates, but winnability and the sensible player's rate must match.
+  const sameEstimate = old !== undefined && old.winnable_no_tools === r.winnable_no_tools && old.sensible_win === r.sensible_win;
+  const flag = !r.winnable_no_tools ? 'UNWINNABLE' : !r.exact ? (sameEstimate ? 'ok (estimated: too big to count)' : 'CHANGED') : same ? 'ok' : 'CHANGED';
   if (!flag.startsWith('ok')) problems++;
   console.log(
     `${lv.id} ${lv.name.padEnd(11)} ${lv.badge.padEnd(8)} winnable=${r.winnable_no_tools} ` +

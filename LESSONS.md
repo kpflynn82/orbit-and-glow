@@ -19,8 +19,14 @@ section. Read this before starting work; the next prototype reads it before it s
 - Reviewer: `applyMove` checked "Dock full" before "won", so clearing the last dust with charge left
   and a full Dock said Stuck. Fixed with fusion (Kevin approved the M2 plan): a win is checked first.
 - Fusion: a comet that finds the Dock full now waits at the gate while a fusion could make room
-  (only fusions are allowed until it parks); stuck only when no fusion can help. Dead ends count
-  fusion fuel: purple dust can still be cleared while red and blue charge remain.
+  (only fusions are allowed until it parks); stuck only when no fusion can help.
+- Reviewer (Oct 17): the first fusion dead-end check counted both parents' charge as fuel even
+  when one parent was gone, so many lost games never said Stuck (e.g. purple left, blue docked, no
+  red anywhere — the player could only send empty laps; up to 73% of sensible-player games on
+  Snail). Now only charge beyond a parent's own dust counts, a mixed color needs spare fuel from
+  BOTH parents, and all shortfalls together can't exceed all spare fuel. Still never a false Stuck.
+- Reviewer: the bot silently dropped those endless games as "not a rules bug". It now flags any
+  game where nothing can change the board but the level hasn't said Stuck.
 
 ## Level design
 
@@ -37,6 +43,12 @@ section. Read this before starting work; the next prototype reads it before it s
   matters.
 - A mixed color with a single speck can't be split between two parent comets; it keeps its own
   comet (bug that made level 16 unwinnable during the rebuild).
+- Reviewer: Whale (level 12) had fusion on with no mixed colors, so a waiting comet could force a
+  fusion that only hurt. Fusion is now off there. Owl (level 10, ~10 minutes into a first session)
+  was 0% for every simple strategy; rebuilt to give the sensible player a small chance.
+- Reviewer: difficulty is calibrated to one bot. A two-move lookahead wins Tricky Lantern ~90%
+  while "tap what you see" loses House and Lighthouse more than Tricky Snail. Kevin's own play is
+  the real test; a second ruler (lookahead) is a candidate for the next tuning pass.
 - Difficulty comes mostly from the picture, not the deal. Flat pictures (a solid heart, a solid
   fish) give levels a random tapper can't lose, whatever the Dock size. Colors hidden behind other
   colors (stripes, outlines, rings, spots) are what make order matter. Nine pictures were redrawn
@@ -66,6 +78,9 @@ section. Read this before starting work; the next prototype reads it before it s
   inside the gate. HUD buttons got tap areas of about 48 points (were about 32).
 - A comet with no charge left kept flying an empty lap, which held up the comets waiting behind it.
   It now bursts right after its last hit. (A feel choice for Kevin to judge on the phone.)
+- Reviewer: dropping a comet on a partner that hadn't landed said "only two different colors can
+  fuse" (wrong reason); it now says to wait. The link between Dock slots 1 and 3 ran under the middle
+  comet; far links now arc below the Dock. Fusion-teaching tips stay (dimmed) until the first fusion.
 
 ## Testing and tooling
 

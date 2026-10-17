@@ -55,5 +55,5 @@ describe('analyzeLevel', () => {
     expect(replayWins(lv, r.path)).toBe(true);
     expect(r.random_win).toBeGreaterThanOrEqual(0);
     expect(r.random_win).toBeLessThanOrEqual(1);
-  });
+  }, 60_000); // 10,000 random games plus the sensible player: a few seconds, longer on a busy machine
 });

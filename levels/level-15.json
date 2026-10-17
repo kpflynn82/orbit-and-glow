@@ -104,7 +104,7 @@
     "winning_orders": 1000000,
     "winning_orders_capped": true,
     "peak_dock": 2,
-    "random_win": 0.125,
+    "random_win": 0.1285,
     "states": 0,
     "path": [
       {

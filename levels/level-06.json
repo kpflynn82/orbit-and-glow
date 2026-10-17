@@ -74,13 +74,14 @@
   "ring": 4,
   "fusion": true,
   "tip": "New: drag a docked comet onto another to fuse them. Red + Yellow = Orange, charges add.",
+  "tipUntil": "fuse",
   "solver": {
     "winnable_no_tools": true,
     "winning_orders": 1000000,
     "winning_orders_capped": true,
     "peak_dock": 2,
     "random_win": 0.1245,
-    "states": 11581,
+    "states": 7029,
     "path": [
       {
         "kind": "rail",

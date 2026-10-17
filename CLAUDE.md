@@ -9,9 +9,9 @@ the source of truth); the full GDD lives there too (`design-docs/gdd-orbit-and-g
 ## Pillars (from the GDD — every change must keep these true)
 
 1. **The board never lies.** Same board every attempt. The result depends only on the order of
-   launches (and, from M2, fusions), never on tap speed. Every shipped level is solver-checked as
+   launches and fusions, never on tap speed. Every shipped level is solver-checked as
    winnable without tools.
-2. **Leftovers are fuel, not trash.** The Dock is a workbench (fusion arrives in M2).
+2. **Leftovers are fuel, not trash.** The Dock is a workbench (fusion, from level 6).
 3. **Everything you solve, you keep.** (Night Atlas, M3.)
 4. **Play is never blocked, and loss is never for sale.** Retry is free and instant, always.
 

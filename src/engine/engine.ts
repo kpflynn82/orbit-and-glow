@@ -250,24 +250,39 @@ export function chargeCounts(state: GameState): Map<Color, number> {
   return m;
 }
 
-/** The most charge of a color that could ever exist: its own comets, plus (with fusion) every
- *  comet of both parent colors if it's a mixed color. Fusion never makes a primary. */
-function maxCharge(color: Color, charge: Map<Color, number>, fusion: boolean): number {
-  let n = charge.get(color) ?? 0;
-  if (fusion) {
-    for (const [p, row] of Object.entries(FUSE)) {
-      for (const [q, made] of Object.entries(row ?? {})) {
-        if (made === color && p < q) n += (charge.get(p as Color) ?? 0) + (charge.get(q as Color) ?? 0);
-      }
-    }
-  }
-  return n;
-}
+const PRIMARIES: Color[] = ['R', 'Y', 'B'];
+const PARENTS: Partial<Record<Color, [Color, Color]>> = { O: ['R', 'Y'], G: ['Y', 'B'], P: ['R', 'B'] };
 
-/** The color that can no longer be cleared (for the stuck message), or null. */
+/**
+ * The color that can never be cleared now, or null. Sound (never names a color that could still
+ * be cleared), and checked after every move so a lost level says Stuck right away:
+ * - a primary or neutral color needs at least its dust in charge of its own color (fusion never
+ *   makes a primary);
+ * - red, yellow or blue charge beyond what its own dust needs is the only fuel fusion can use;
+ * - a mixed color short of charge needs spare fuel from BOTH of its parents (one fusion takes one
+ *   of each), and all the mixed colors' shortfalls together can't exceed all the spare fuel.
+ */
 export function deadEndColor(state: GameState): Color | null {
   const charge = chargeCounts(state);
-  for (const [color, n] of dustCounts(state)) if (maxCharge(color, charge, state.fusion) < n) return color;
+  const dust = dustCounts(state);
+  const have = (c: Color) => charge.get(c) ?? 0;
+  const need = (c: Color) => dust.get(c) ?? 0;
+  for (const [c, n] of dust) if (!PARENTS[c] && have(c) < n) return c;
+  const spare = (p: Color) => Math.max(0, have(p) - need(p));
+  let totalShort = 0;
+  let worst: Color | null = null;
+  for (const [c, n] of dust) {
+    const parents = PARENTS[c];
+    if (!parents) continue;
+    const short = n - have(c);
+    if (short <= 0) continue;
+    if (!state.fusion) return c;
+    const [p, q] = parents;
+    if (spare(p) === 0 || spare(q) === 0 || spare(p) + spare(q) < short) return c;
+    totalShort += short;
+    worst = c;
+  }
+  if (worst && totalShort > PRIMARIES.reduce((sum, p) => sum + spare(p), 0)) return worst;
   return null;
 }
 
@@ -276,13 +291,10 @@ function withStatus(state: GameState): GameState {
   if (state.status !== 'playing') return state;
   const dust = dustCounts(state);
   if (dust.size === 0) { state.status = 'won'; state.holding = null; return state; }
-  const charge = chargeCounts(state);
-  for (const [color, n] of dust) {
-    if (maxCharge(color, charge, state.fusion) < n) {
-      state.status = 'stuck';
-      state.stuckReason = 'dead-end';
-      return state;
-    }
+  if (deadEndColor(state)) {
+    state.status = 'stuck';
+    state.stuckReason = 'dead-end';
+    return state;
   }
   return state;
 }

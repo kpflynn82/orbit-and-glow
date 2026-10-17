@@ -4,8 +4,8 @@
 //   1. replays the solver's winning path through the real rules engine (must win);
 //   2. plays many random games, checking at every step that
 //      - "won" appears exactly when the last dust is cleared,
-//      - every "stuck" the game reports really is unwinnable (it always should be), and
-//      - "stuck" never appears with no dust left, and
+//      - "stuck" never appears with no dust left,
+//      - a game never goes on with no progress possible (a lost level must say "Stuck"), and
 //      - counting the "silent doom" moves: launches a player made after the level was already
 //        lost but before the game said "Stuck" (relaunching a docked comet that hits nothing
 //        doesn't count — it changes nothing). These aren't bugs, but a high number means
@@ -97,6 +97,7 @@ for (const [i, f] of files.entries()) {
     let doomAt = -1; // count of real launches when the level became unwinnable
     let moves = 0; // every tap
     let real = 0; // taps that changed the board
+    let lastReal = 0; // tap number of the last one that changed the board
     while (st.status === 'playing' && moves < MAX_MOVES) {
       if (doomAt < 0 && lost(st)) doomAt = real;
       const legal = legalMoves(st);
@@ -108,13 +109,15 @@ for (const [i, f] of files.entries()) {
       const { state: next, result } = applyMove(st, m);
       st = next;
       moves++;
-      if (!(m.kind === 'dock' && result.shots.length === 0)) real++;
+      if (!(m.kind === 'dock' && result.shots.length === 0)) { real++; lastReal = moves; }
       if (st.status === 'won' && hasDust(st)) errors.push(`game ${g}: "won" with dust left`);
       if (st.status === 'playing' && !hasDust(st)) errors.push(`game ${g}: no dust left but not "won"`);
       if (st.status === 'stuck' && !hasDust(st)) errors.push(`game ${g}: "stuck" with no dust left`);
     }
     if (moves >= MAX_MOVES) {
-      // Only possible by relaunching docked comets that hit nothing; not a rules bug.
+      // 400 taps without an end: if nothing changed the board for the last stretch, the level was
+      // lost but never said "Stuck" — a rules bug (the reviewer caught exactly this on Oct 17).
+      if (moves - lastReal > 60) errors.push(`game ${g}: no progress possible but not "Stuck"`);
       continue;
     }
     if (st.status === 'won') {

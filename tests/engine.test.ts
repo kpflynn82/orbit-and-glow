@@ -177,6 +177,22 @@ describe('fusion', () => {
     expect(s.status).toBe('won');
   });
 
+  it('says Stuck right away when a mixed color can no longer be made (reviewer case)', () => {
+    // Purple dust, blue fuel, but no red anywhere: purple can never be made.
+    const s = createState(level(['PPPPP'], [[C('B', 5)]], 2, true));
+    expect(s.status).toBe('stuck');
+    expect(s.stuckReason).toBe('dead-end');
+    // Red that its own red dust needs isn't spare fuel either.
+    const t = createState(level(['RRPP'], [[C('R', 2)], [C('B', 2)]], 2, true));
+    expect(t.status).toBe('stuck');
+    // With one spare red it's still possible.
+    const u = createState(level(['RRPP'], [[C('R', 3)], [C('B', 1)]], 2, true));
+    expect(u.status).toBe('playing');
+    // Shortfalls of two mixed colors can't share the same spare fuel.
+    const v = createState(level(['OOPP'], [[C('R', 1)], [C('Y', 1)], [C('B', 1)]], 2, true));
+    expect(v.status).toBe('stuck');
+  });
+
   it('the solver finds a win that needs a fusion', () => {
     const r = solveLevel(level(['PPP'], [[C('R', 2)], [C('B', 1)]], 2, true));
     expect(r.winnable_no_tools).toBe(true);

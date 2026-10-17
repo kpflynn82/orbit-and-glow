@@ -48,6 +48,8 @@ interface Plan {
   /** Winning needs at least one fusion. */
   mustFuse?: boolean;
   tip?: string;
+  /** Keep the tip until the first fusion (levels that teach fusion). */
+  tipUntil?: 'fuse';
 }
 
 const PLANS: Plan[] = [
@@ -62,21 +64,23 @@ const PLANS: Plan[] = [
   { picture: 'Lantern', badge: 'tricky', rails: 3, dock: 2, charge: [4, 9], target: [0, 0.25],
     tip: 'Tricky: the obvious launch isn’t always the right one.' },
   { picture: 'Apple Tree', badge: 'normal', rails: 3, dock: 3, charge: [3, 8], target: [0.4, 0.95],
-    fusion: true, viaFusion: { O: 1 }, mustFuse: true,
+    fusion: true, viaFusion: { O: 1 }, mustFuse: true, tipUntil: 'fuse',
     tip: 'New: drag a docked comet onto another to fuse them. Red + Yellow = Orange, charges add.' },
   { picture: 'Cat', badge: 'normal', rails: 3, dock: 3, charge: [3, 8], target: [0.4, 0.85],
-    fusion: true, viaFusion: { G: 1 }, mustFuse: true,
+    fusion: true, viaFusion: { G: 1 }, mustFuse: true, tipUntil: 'fuse',
     tip: 'Yellow + Blue = Green. Send a comet that can’t hit anything yet and it parks, ready to fuse.' },
   { picture: 'Teapot', badge: 'normal', rails: 3, dock: 3, charge: [4, 9], target: [0.35, 0.8],
     fusion: true, viaFusion: { P: 1 }, mustFuse: true },
   { picture: 'Sailboat', badge: 'normal', rails: 3, dock: 3, charge: [4, 10], target: [0.3, 0.75],
     fusion: true, viaFusion: { O: 1 }, mustFuse: true },
-  { picture: 'Owl', badge: 'starfall', rails: 4, dock: 2, charge: [3, 8], target: [0, 0.1],
+  // Level 10 arrives about ten minutes into a first session: hard, but not zero for every strategy.
+  { picture: 'Owl', badge: 'starfall', rails: 4, dock: 2, charge: [3, 8], target: [0.03, 0.12],
     fusion: true, viaFusion: { O: 0.4 },
     tip: 'Starfall: the hardest kind of level. Retry is always free.' },
   { picture: 'Flower', badge: 'normal', rails: 3, dock: 3, charge: [4, 9], target: [0.3, 0.75],
     fusion: true, viaFusion: { G: 1 }, mustFuse: true },
-  { picture: 'Whale', badge: 'normal', rails: 4, dock: 3, charge: [3, 8], target: [0.3, 0.75], fusion: true },
+  // No mixed colors in this picture, so no fusion (a fusion could only hurt).
+  { picture: 'Whale', badge: 'normal', rails: 4, dock: 3, charge: [3, 8], target: [0.3, 0.75] },
   { picture: 'House', badge: 'normal', rails: 4, dock: 3, charge: [4, 9], target: [0.25, 0.7],
     fusion: true, viaFusion: { G: 1 }, mustFuse: true },
   { picture: 'Planet', badge: 'normal', rails: 4, dock: 3, charge: [4, 9], target: [0.25, 0.7],
@@ -284,6 +288,7 @@ function buildLevel(i: number, plan: Plan, dock: number): { level: LevelData; s:
     ring: 4,
     ...(plan.fusion ? { fusion: true } : {}),
     ...(plan.tip ? { tip: plan.tip } : {}),
+    ...(plan.tipUntil ? { tipUntil: plan.tipUntil } : {}),
   });
   let best: { rails: Comet[][]; s: number } | null = null;
   // Several fresh starts, then local improvement from the best.

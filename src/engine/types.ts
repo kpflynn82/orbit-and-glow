@@ -81,6 +81,8 @@ export interface LevelData {
   fusion?: boolean;
   /** A one-line coach tip shown at the top of the level (early levels and new ideas). */
   tip?: string;
+  /** Keep the tip (dimmed) until the first fusion instead of the first launch. */
+  tipUntil?: 'fuse';
   solver?: SolverReport;
 }
 

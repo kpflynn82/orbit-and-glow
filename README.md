@@ -13,7 +13,8 @@ player" bot. No art or sound yet. See `docs/brief.md`.
 Tap the front comet on a rail. It flies one lap around the orbit and clears every speck of its
 color that it can see from the edge (only the first speck in each row or column). If it still has
 charge after the lap, it parks in the Dock; tap it there to send it again later. Clear the whole
-picture to win. If a comet has to park and the Dock is full, you're stuck — retry is free.
+picture to win. You're stuck if a comet has to park and the Dock is full (and no fusion can make
+room), or if some color can no longer be cleared by any comet or fusion — retry is free.
 From level 6, drag one docked comet onto another to **fuse** them: Red + Yellow = Orange,
 Yellow + Blue = Green, Red + Blue = Purple, charges added. Sending a comet that can't hit anything
 yet is how you park it, ready to fuse. If a comet comes back to a full Dock, it waits at the gate
