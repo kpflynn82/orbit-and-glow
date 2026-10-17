@@ -11,8 +11,8 @@
 // that hadn't cleared yet, or passing cells of their color without firing.
 
 import Phaser from 'phaser';
-import { applyMove, cometFor, createState, lapSteps } from '../engine/engine';
-import type { Comet, GameState, LaunchResult, LevelData, Move, Side } from '../engine/types';
+import { applyMove, canFuse, cometFor, createState, deadEndColor, lapSteps } from '../engine/engine';
+import type { Comet, FuseResult, GameState, LaunchResult, LevelData, Move, Side } from '../engine/types';
 import { COLOR_NAMES } from '../engine/types';
 import { LEVELS } from '../levels';
 import { COLOR_HEX, PAL, drawGlyph, drawStar } from './palette';
@@ -68,6 +68,15 @@ export class GameScene extends Phaser.Scene {
   private skyStars = new Set<unknown>();
   private orbitBusy = false;
   private waiting: { comet: Phaser.GameObjects.Container; run: () => void }[] = [];
+  // Fusion: dragging a docked comet, fusions still animating, and a comet waiting to park.
+  private drag: { slot: number; x0: number; y0: number; moved: boolean } | null = null;
+  private fusing = 0;
+  private heldView: Phaser.GameObjects.Container | null = null;
+  private heldArrived = false;
+  private heldSlot: number | null = null;
+  private linkGfx: Phaser.GameObjects.Graphics | null = null;
+  private tipText: Phaser.GameObjects.Container | null = null;
+  private hintText: Phaser.GameObjects.Text | null = null;
 
   constructor() {
     super('game');
@@ -81,6 +90,9 @@ export class GameScene extends Phaser.Scene {
     this.railLayer = this.add.container(0, 0);
     this.fxLayer = this.add.container(0, 0);
     this.hud = this.add.container(0, 0);
+    this.input.on('pointermove', (p: Phaser.Input.Pointer) => this.onDragMove(p));
+    this.input.on('pointerup', (p: Phaser.Input.Pointer) => this.onDragEnd(p));
+    this.input.on('pointerupoutside', (p: Phaser.Input.Pointer) => this.onDragEnd(p));
     const start = Math.min(this.progress.lastLevel, LEVELS.length - 1);
     this.loadLevel(start);
   }
@@ -95,6 +107,11 @@ export class GameScene extends Phaser.Scene {
     this.inFlight = 0;
     this.orbitBusy = false;
     this.waiting = [];
+    this.drag = null;
+    this.fusing = 0;
+    this.heldView = null;
+    this.heldArrived = false;
+    this.heldSlot = null;
     this.pendingDock.clear();
     // Stop the last level's animations, but keep the background stars twinkling.
     for (const t of this.tweens.getTweens()) {
@@ -259,12 +276,51 @@ export class GameScene extends Phaser.Scene {
       this.dockSlotGfx.push(g);
       this.dockLayer.add(g);
       const hit = this.add.circle(p.x, p.y, FRONT_R + 12, 0xffffff, 0.001).setInteractive({ useHandCursor: true });
-      hit.on('pointerdown', () => {
-        if (this.state.dock[i] && !this.pendingDock.has(i)) this.tryMove({ kind: 'dock', slot: i });
+      // Tap = launch it again. Drag onto another docked comet = fuse (in levels with fusion).
+      hit.on('pointerdown', (ptr: Phaser.Input.Pointer) => {
+        if (this.overlay || !this.state.dock[i] || this.pendingDock.has(i) || !this.dockViews[i]) return;
+        this.drag = { slot: i, x0: ptr.x, y0: ptr.y, moved: false };
       });
       this.dockLayer.add(hit);
     });
+    this.linkGfx = this.add.graphics();
+    this.dockLayer.addAt(this.linkGfx, 0);
     this.refreshDockSlots();
+  }
+
+  private slotAt(x: number, y: number, except: number): number {
+    let best = -1;
+    let bestD = FRONT_R + 30;
+    this.L.dock.forEach((p, i) => {
+      const d = Math.hypot(p.x - x, p.y - y);
+      if (i !== except && d < bestD) { best = i; bestD = d; }
+    });
+    return best;
+  }
+
+  private onDragMove(p: Phaser.Input.Pointer): void {
+    const d = this.drag;
+    if (!d) return;
+    const view = this.dockViews[d.slot];
+    if (!view) { this.drag = null; return; }
+    if (!d.moved && this.state.fusion && Math.hypot(p.x - d.x0, p.y - d.y0) > 16) d.moved = true;
+    if (d.moved) view.setPosition(p.x, p.y);
+  }
+
+  private onDragEnd(p: Phaser.Input.Pointer): void {
+    const d = this.drag;
+    this.drag = null;
+    if (!d) return;
+    if (!d.moved) {
+      this.tryMove({ kind: 'dock', slot: d.slot });
+      return;
+    }
+    const target = this.slotAt(p.x, p.y, d.slot);
+    if (target >= 0 && this.tryFuse(d.slot, target)) return;
+    const view = this.dockViews[d.slot];
+    const home = this.L.dock[d.slot];
+    if (view) this.tweens.add({ targets: view, x: home.x, y: home.y, duration: 160, ease: 'Quad.easeOut' });
+    if (target >= 0 && this.state.dock[target]) this.showHint('Only two different colors of Red, Yellow and Blue can fuse.');
   }
 
   private refreshDockSlots(): void {
@@ -280,6 +336,31 @@ export class GameScene extends Phaser.Scene {
       g.lineStyle(3, warn ? PAL.amber : PAL.dockRim, warn ? 0.95 : 0.6);
       g.strokeCircle(p.x, p.y, FRONT_R + 8);
     });
+    // A faint link between docked comets that could fuse (teaches the move).
+    const lg = this.linkGfx;
+    if (!lg) return;
+    lg.clear();
+    if (!this.state.fusion || this.state.status !== 'playing') return;
+    for (let i = 0; i < this.L.dock.length; i++)
+      for (let j = i + 1; j < this.L.dock.length; j++) {
+        if (!canFuse(this.state, i, j) || this.pendingDock.has(i) || this.pendingDock.has(j)) continue;
+        const a = this.L.dock[i];
+        const b = this.L.dock[j];
+        lg.lineStyle(4, 0xffffff, this.state.holding ? 0.55 : 0.22);
+        lg.beginPath();
+        lg.moveTo(a.x, a.y);
+        lg.lineTo(b.x, b.y);
+        lg.strokePath();
+      }
+  }
+
+  private showHint(msg: string): void {
+    const t = this.hintText;
+    if (!t) return;
+    t.setText(msg);
+    this.tweens.killTweensOf(t);
+    t.setAlpha(1);
+    if (!this.state.holding) this.tweens.add({ targets: t, alpha: 0, delay: 2600, duration: 500 });
   }
 
   private drawHud(): void {
@@ -304,6 +385,28 @@ export class GameScene extends Phaser.Scene {
     };
     mk(GAME_W - 52, '↻', () => this.loadLevel(this.levelIndex));
     mk(GAME_W - 144, '≡', () => this.showLevelMenu());
+
+    // The level's coach tip, until the first move.
+    this.tipText = null;
+    if (this.level.tip) {
+      const top = this.level.badge !== 'normal' ? 104 : 86;
+      const t = this.add.text(GAME_W / 2, top + 14, this.level.tip, {
+        ...style, fontSize: '23px', align: 'center', wordWrap: { width: 600 }, lineSpacing: 4,
+      }).setOrigin(0.5, 0);
+      const bg = this.add.rectangle(GAME_W / 2, top, 640, t.height + 28, 0x0b1026, 0.82).setOrigin(0.5, 0).setStrokeStyle(2, PAL.orbit, 0.35);
+      this.tipText = this.add.container(0, 0, [bg, t]);
+      this.hud.add(this.tipText);
+    }
+    // Short messages (Dock full, can't fuse…), between the Dock and the rails.
+    this.hintText = this.add.text(GAME_W / 2, 1031, '', { ...style, fontSize: '21px', color: PAL.text, align: 'center' }).setOrigin(0.5).setAlpha(0);
+    this.hud.add(this.hintText);
+  }
+
+  private fadeTip(): void {
+    const t = this.tipText;
+    if (!t) return;
+    this.tipText = null;
+    this.tweens.add({ targets: t, alpha: 0, duration: 500, onComplete: () => t.destroy() });
   }
 
   // ───────────────────────────── playing ─────────────────────────────
@@ -311,11 +414,16 @@ export class GameScene extends Phaser.Scene {
   /** Positions of tappable things, in game coordinates (used by the playtest bot). */
   pointFor(move: Move): { x: number; y: number } {
     if (move.kind === 'rail') return { x: this.L.railX[move.rail], y: this.L.railFrontY };
-    return this.L.dock[move.slot];
+    if (move.kind === 'dock') return this.L.dock[move.slot];
+    return this.L.dock[move.from];
+  }
+
+  slotPoint(slot: number): { x: number; y: number } {
+    return this.L.dock[slot];
   }
 
   busy(): boolean {
-    return this.inFlight > 0;
+    return this.inFlight > 0 || this.fusing > 0 || (this.heldSlot !== null && this.heldView !== null);
   }
 
   flying(): number {
@@ -330,8 +438,15 @@ export class GameScene extends Phaser.Scene {
 
   tryMove(move: Move): boolean {
     if (this.overlay || this.state.status !== 'playing') return false;
+    if (move.kind === 'fuse') return this.tryFuse(move.from, move.onto);
     const comet = cometFor(this.state, move);
-    if (!comet) return false;
+    if (!comet) {
+      if (this.state.holding) {
+        this.cameras.main.shake(120, 0.003);
+        this.showHint('The Dock is full. Drag two comets together to make room.');
+      }
+      return false;
+    }
     if (this.inFlight >= this.level.ring) {
       this.cameras.main.shake(120, 0.003);
       return false;
@@ -350,11 +465,100 @@ export class GameScene extends Phaser.Scene {
 
     const { state, result } = applyMove(this.state, move);
     this.state = state;
+    this.fadeTip();
     if (result.parkedSlot !== null) this.pendingDock.add(result.parkedSlot);
     this.drawRails();
     this.refreshDockSlots();
-    this.animateLaunch(launched, result);
+    this.animateLaunch(launched, result as LaunchResult);
     return true;
+  }
+
+  /** Fuse the docked comet in `from` into the one in `onto` (drag-and-drop or the test hook). */
+  tryFuse(from: number, onto: number): boolean {
+    if (this.overlay || this.state.status !== 'playing') return false;
+    if (!canFuse(this.state, from, onto) || this.pendingDock.has(from) || this.pendingDock.has(onto)) return false;
+    const a = this.dockViews[from];
+    const b = this.dockViews[onto];
+    if (!a || !b) return false;
+    const gen = this.generation;
+    const { state, result } = applyMove(this.state, { kind: 'fuse', from, onto });
+    const fr = result as FuseResult;
+    this.state = state;
+    this.fadeTip();
+    this.fusing++;
+    this.dockViews[from] = null;
+    this.pendingDock.add(onto);
+    if (fr.parkedSlot !== null) this.pendingDock.add(fr.parkedSlot);
+    this.refreshDockSlots();
+    const target = this.L.dock[onto];
+    this.tweens.add({
+      targets: a,
+      x: target.x,
+      y: target.y,
+      scale: 0.7,
+      duration: 200,
+      ease: 'Quad.easeIn',
+      onComplete: () => {
+        if (gen !== this.generation) return;
+        a.destroy();
+        b.destroy();
+        const made = this.makeComet(fr.comet, FRONT_R).setPosition(target.x, target.y).setScale(0.5);
+        this.dockLayer.add(made);
+        this.dockViews[onto] = made;
+        this.burst(target.x, target.y, COLOR_HEX[fr.comet.color]);
+        this.tweens.add({
+          targets: made,
+          scale: 1,
+          duration: 260,
+          ease: 'Back.easeOut',
+          onComplete: () => {
+            if (gen !== this.generation) return;
+            this.pendingDock.delete(onto);
+            this.fusing--;
+            this.refreshDockSlots();
+            if (fr.parkedSlot !== null) this.parkHeld(fr.parkedSlot);
+            this.checkEnd();
+          },
+        });
+      },
+    });
+    return true;
+  }
+
+  /** A fusion made room: the comet that was waiting (or is still on its lap) parks in `slot`. */
+  private parkHeld(slot: number): void {
+    this.heldSlot = slot;
+    const view = this.heldView;
+    if (!view || !this.heldArrived) return; // it will park when its lap ends (finishLap)
+    const gen = this.generation;
+    const p = this.L.dock[slot];
+    this.tweens.killTweensOf(view);
+    this.tweens.add({
+      targets: view,
+      x: p.x,
+      y: p.y,
+      alpha: 1,
+      scale: 1,
+      duration: PARK_MS,
+      ease: 'Quad.easeOut',
+      onComplete: () => {
+        if (gen !== this.generation) return;
+        this.fxLayer.remove(view);
+        this.dockLayer.add(view);
+        this.dockViews[slot] = view;
+        this.pendingDock.delete(slot);
+        this.heldView = null;
+        this.heldArrived = false;
+        this.heldSlot = null;
+        if (this.hintText) this.tweens.add({ targets: this.hintText, alpha: 0, duration: 300 });
+        this.refreshDockSlots();
+        this.checkEnd();
+      },
+    });
+  }
+
+  private checkEnd(): void {
+    if (this.state.status !== 'playing' && this.inFlight === 0 && this.fusing === 0) this.showEnd();
   }
 
   private stepPoint(side: Side, line: number): { x: number; y: number; theta: number } {
@@ -505,6 +709,22 @@ export class GameScene extends Phaser.Scene {
 
   private finishLap(comet: Phaser.GameObjects.Container, result: LaunchResult): void {
     const gen = this.generation;
+    if (result.held) {
+      // The Dock was full but a fusion can make room: wait just inside the gate.
+      this.heldView = comet;
+      this.heldArrived = true;
+      this.landed();
+      if (this.heldSlot !== null) {
+        this.parkHeld(this.heldSlot);
+        return;
+      }
+      const spot = this.waitSpot(1);
+      this.tweens.add({ targets: comet, x: spot.x, y: spot.y, duration: PARK_MS, ease: 'Quad.easeOut' });
+      this.tweens.add({ targets: comet, scale: 1.12, duration: 420, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+      this.showHint('The Dock is full. Drag two comets together to make room.');
+      this.refreshDockSlots();
+      return;
+    }
     if (result.parkedSlot !== null) {
       const slot = result.parkedSlot;
       const p = this.L.dock[slot];
@@ -547,7 +767,7 @@ export class GameScene extends Phaser.Scene {
   private landed(): void {
     this.inFlight = Math.max(0, this.inFlight - 1);
     this.refreshDockSlots();
-    if (this.inFlight === 0 && this.state.status !== 'playing') this.showEnd();
+    this.checkEnd();
   }
 
   // ───────────────────────────── overlays ─────────────────────────────
@@ -584,7 +804,7 @@ export class GameScene extends Phaser.Scene {
       if (!this.progress.completed.includes(this.levelIndex)) this.progress.completed.push(this.levelIndex);
       saveProgress(this.progress);
       c.add(this.add.text(GAME_W / 2, cy - 105, 'The sky lights up!', { ...style, fontSize: '42px', fontStyle: 'bold' }).setOrigin(0.5));
-      c.add(this.add.text(GAME_W / 2, cy - 50, `${this.level.name} — ${this.state.moves} launches`, { ...style, fontSize: '26px', color: PAL.textDim }).setOrigin(0.5));
+      c.add(this.add.text(GAME_W / 2, cy - 50, `${this.level.name} — ${this.state.moves} moves`, { ...style, fontSize: '26px', color: PAL.textDim }).setOrigin(0.5));
       const last = this.levelIndex >= LEVELS.length - 1;
       this.button(c, GAME_W / 2 - 130, cy + 75, 'Replay', false, () => this.loadLevel(this.levelIndex));
       this.button(c, GAME_W / 2 + 130, cy + 75, last ? 'Levels' : 'Next', true, () =>
@@ -594,7 +814,9 @@ export class GameScene extends Phaser.Scene {
       const reason =
         this.state.stuckReason === 'dock-full'
           ? 'A comet had nowhere to park —\nthe Dock was full.'
-          : `Not enough ${this.deadColorName()} comets left\nto clear the rest.`;
+          : this.state.fusion
+            ? `Not enough ${this.deadColorName()} left — in comets\nor fusions — to clear the rest.`
+            : `Not enough ${this.deadColorName()} comets left\nto clear the rest.`;
       c.add(this.add.text(GAME_W / 2, cy - 85, 'Stuck', { ...style, fontSize: '44px', fontStyle: 'bold' }).setOrigin(0.5));
       c.add(this.add.text(GAME_W / 2, cy - 18, reason, { ...style, fontSize: '26px', color: PAL.textDim }).setOrigin(0.5));
       this.button(c, GAME_W / 2 - 130, cy + 72, 'Levels', false, () => this.showLevelMenu());
@@ -604,14 +826,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   private deadColorName(): string {
-    const dust = new Map<string, number>();
-    for (const c of this.state.cells) if (c) dust.set(c, (dust.get(c) ?? 0) + 1);
-    const charge = new Map<string, number>();
-    const add = (c: Comet | null) => { if (c) charge.set(c.color, (charge.get(c.color) ?? 0) + c.charge); };
-    this.state.rails.forEach((r) => r.forEach(add));
-    this.state.dock.forEach(add);
-    for (const [c, n] of dust) if ((charge.get(c) ?? 0) < n) return COLOR_NAMES[c as keyof typeof COLOR_NAMES].toLowerCase();
-    return '';
+    const c = deadEndColor(this.state);
+    return c ? COLOR_NAMES[c].toLowerCase() : '';
   }
 
   showLevelMenu(): void {

@@ -9,11 +9,18 @@
 // - Each lap is worked out the moment the comet is launched, in launch order. How fast you tap
 //   never changes the result ("order, not timing").
 // - Charge left after the lap → the comet parks in the first empty Dock slot. Charge 0 → it bursts.
-// - Win: no dust left. Stuck: a comet must park and the Dock is full, or some color has more dust
-//   left than all remaining comets of that color can clear.
+// - Fusion (levels that allow it): drag one docked primary comet onto another of a different
+//   primary color. They become one comet of the mixed color with the charges added
+//   (Red 7 + Blue 4 = Purple 11). This always frees a slot.
+// - Win: no dust left (checked first, so clearing the last dust always wins).
+// - A comet that must park when the Dock is full waits at the gate if a fusion could make room;
+//   the player's only moves are then fusions, and it parks as soon as a slot frees up.
+// - Stuck: a comet must park, the Dock is full and no fusion can make room; or some color has
+//   more dust left than every remaining comet (and every fusion) could ever clear.
 
+import { FUSE } from './types';
 import type {
-  Color, Comet, GameState, LapStep, LaunchResult, LevelData, Move, Shot,
+  Color, Comet, FuseResult, GameState, LapStep, LaunchResult, LevelData, Move, MoveResult, Shot,
 } from './types';
 
 const lapCache = new Map<string, LapStep[]>();
@@ -83,6 +90,8 @@ export function createState(level: LevelData): GameState {
     status: 'playing',
     stuckReason: null,
     moves: 0,
+    fusion: Boolean(level.fusion),
+    holding: null,
   };
   return withStatus(state);
 }
@@ -96,18 +105,50 @@ export function cloneState(s: GameState): GameState {
   };
 }
 
-/** Comet a move would launch, or null if the move isn't possible. */
+/** Comet a launch would send, or null if the move isn't a possible launch. */
 export function cometFor(state: GameState, move: Move): Comet | null {
+  if (state.holding) return null; // a comet is waiting to park: only fusions are allowed
   if (move.kind === 'rail') return state.rails[move.rail]?.[0] ?? null;
-  return state.dock[move.slot] ?? null;
+  if (move.kind === 'dock') return state.dock[move.slot] ?? null;
+  return null;
+}
+
+/** The color two comets make when fused, or null if they can't fuse. */
+export function fuseColor(a: Color, b: Color): Color | null {
+  return FUSE[a]?.[b] ?? null;
+}
+
+/** Can the docked comets in these two slots be fused right now? */
+export function canFuse(state: GameState, from: number, onto: number): boolean {
+  if (!state.fusion || state.status !== 'playing' || from === onto) return false;
+  const a = state.dock[from];
+  const b = state.dock[onto];
+  return Boolean(a && b && fuseColor(a.color, b.color));
+}
+
+function anyFusion(state: GameState): boolean {
+  if (!state.fusion) return false;
+  for (let i = 0; i < state.dock.length; i++)
+    for (let j = i + 1; j < state.dock.length; j++) {
+      const a = state.dock[i];
+      const b = state.dock[j];
+      if (a && b && fuseColor(a.color, b.color)) return true;
+    }
+  return false;
 }
 
 /** Every move the player could make right now. */
 export function legalMoves(state: GameState): Move[] {
   if (state.status !== 'playing') return [];
   const moves: Move[] = [];
-  state.rails.forEach((rail, i) => { if (rail.length > 0) moves.push({ kind: 'rail', rail: i }); });
-  state.dock.forEach((c, i) => { if (c) moves.push({ kind: 'dock', slot: i }); });
+  if (!state.holding) {
+    state.rails.forEach((rail, i) => { if (rail.length > 0) moves.push({ kind: 'rail', rail: i }); });
+    state.dock.forEach((c, i) => { if (c) moves.push({ kind: 'dock', slot: i }); });
+  }
+  if (state.fusion) {
+    for (let i = 0; i < state.dock.length; i++)
+      for (let j = 0; j < state.dock.length; j++) if (canFuse(state, i, j)) moves.push({ kind: 'fuse', from: i, onto: j });
+  }
   return moves;
 }
 
@@ -135,11 +176,12 @@ function runLap(state: GameState, comet: Comet): { shots: Shot[]; leftover: numb
 }
 
 /**
- * Launch a comet. Returns the new state (the input is not changed) and what happened, for the
- * animation. Throws if the move isn't legal.
+ * Make a move (launch or fuse). Returns the new state (the input is not changed) and what
+ * happened, for the animation. Throws if the move isn't legal.
  */
-export function applyMove(state: GameState, move: Move): { state: GameState; result: LaunchResult } {
+export function applyMove(state: GameState, move: Move): { state: GameState; result: MoveResult } {
   if (state.status !== 'playing') throw new Error('game is over');
+  if (move.kind === 'fuse') return applyFuse(state, move);
   const comet = cometFor(state, move);
   if (!comet) throw new Error(`illegal move ${JSON.stringify(move)}`);
   const next = cloneState(state);
@@ -149,19 +191,46 @@ export function applyMove(state: GameState, move: Move): { state: GameState; res
 
   const { shots, leftover } = runLap(next, comet);
   let parkedSlot: number | null = null;
+  let held = false;
   next.moves++;
 
-  if (leftover > 0) {
+  const noDust = !next.cells.some((c) => c !== null);
+  if (leftover > 0 && !noDust) {
     const free = next.dock.indexOf(null);
-    if (free === -1) {
+    if (free >= 0) {
+      next.dock[free] = { color: comet.color, charge: leftover };
+      parkedSlot = free;
+    } else if (anyFusion(next)) {
+      next.holding = { color: comet.color, charge: leftover };
+      held = true;
+    } else {
       next.status = 'stuck';
       next.stuckReason = 'dock-full';
-      return { state: next, result: { move, comet, shots, leftover, parkedSlot: null, fromSlot } };
+      const result: LaunchResult = { type: 'launch', move, comet, shots, leftover, parkedSlot: null, fromSlot, held: false };
+      return { state: next, result };
     }
-    next.dock[free] = { color: comet.color, charge: leftover };
-    parkedSlot = free;
   }
-  return { state: withStatus(next), result: { move, comet, shots, leftover, parkedSlot, fromSlot } };
+  const result: LaunchResult = { type: 'launch', move, comet, shots, leftover, parkedSlot, fromSlot, held };
+  return { state: withStatus(next), result };
+}
+
+function applyFuse(state: GameState, move: { kind: 'fuse'; from: number; onto: number }): { state: GameState; result: FuseResult } {
+  if (!canFuse(state, move.from, move.onto)) throw new Error(`illegal move ${JSON.stringify(move)}`);
+  const next = cloneState(state);
+  const a = next.dock[move.from]!;
+  const b = next.dock[move.onto]!;
+  const made: Comet = { color: fuseColor(a.color, b.color)!, charge: a.charge + b.charge };
+  next.dock[move.onto] = made;
+  next.dock[move.from] = null;
+  next.moves++;
+  let parkedSlot: number | null = null;
+  if (next.holding) {
+    parkedSlot = next.dock.indexOf(null);
+    next.dock[parkedSlot] = next.holding;
+    next.holding = null;
+  }
+  const result: FuseResult = { type: 'fuse', move, comet: made, a, b, fromSlot: move.from, onto: move.onto, shots: [], leftover: 0, parkedSlot };
+  return { state: withStatus(next), result };
 }
 
 /** Dust left of each color. */
@@ -171,23 +240,45 @@ export function dustCounts(state: GameState): Map<Color, number> {
   return m;
 }
 
-/** Total charge still available for each color (rails + Dock). */
+/** Total charge still available for each color (rails + Dock + a comet waiting to park). */
 export function chargeCounts(state: GameState): Map<Color, number> {
   const m = new Map<Color, number>();
   const add = (c: Comet | null) => { if (c) m.set(c.color, (m.get(c.color) ?? 0) + c.charge); };
   state.rails.forEach((r) => r.forEach(add));
   state.dock.forEach(add);
+  add(state.holding);
   return m;
+}
+
+/** The most charge of a color that could ever exist: its own comets, plus (with fusion) every
+ *  comet of both parent colors if it's a mixed color. Fusion never makes a primary. */
+function maxCharge(color: Color, charge: Map<Color, number>, fusion: boolean): number {
+  let n = charge.get(color) ?? 0;
+  if (fusion) {
+    for (const [p, row] of Object.entries(FUSE)) {
+      for (const [q, made] of Object.entries(row ?? {})) {
+        if (made === color && p < q) n += (charge.get(p as Color) ?? 0) + (charge.get(q as Color) ?? 0);
+      }
+    }
+  }
+  return n;
+}
+
+/** The color that can no longer be cleared (for the stuck message), or null. */
+export function deadEndColor(state: GameState): Color | null {
+  const charge = chargeCounts(state);
+  for (const [color, n] of dustCounts(state)) if (maxCharge(color, charge, state.fusion) < n) return color;
+  return null;
 }
 
 /** Sets won / stuck (dead-end) after a move. Dock-full is set in applyMove. */
 function withStatus(state: GameState): GameState {
   if (state.status !== 'playing') return state;
   const dust = dustCounts(state);
-  if (dust.size === 0) { state.status = 'won'; return state; }
+  if (dust.size === 0) { state.status = 'won'; state.holding = null; return state; }
   const charge = chargeCounts(state);
   for (const [color, n] of dust) {
-    if ((charge.get(color) ?? 0) < n) {
+    if (maxCharge(color, charge, state.fusion) < n) {
       state.status = 'stuck';
       state.stuckReason = 'dead-end';
       return state;

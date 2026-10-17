@@ -16,21 +16,7 @@
     [
       {
         "color": "R",
-        "charge": 7
-      },
-      {
-        "color": "R",
-        "charge": 12
-      },
-      {
-        "color": "W",
-        "charge": 1
-      }
-    ],
-    [
-      {
-        "color": "R",
-        "charge": 12
+        "charge": 6
       },
       {
         "color": "R",
@@ -38,19 +24,42 @@
       },
       {
         "color": "R",
+        "charge": 7
+      },
+      {
+        "color": "R",
         "charge": 6
+      }
+    ],
+    [
+      {
+        "color": "R",
+        "charge": 7
+      },
+      {
+        "color": "W",
+        "charge": 1
+      },
+      {
+        "color": "R",
+        "charge": 6
+      },
+      {
+        "color": "R",
+        "charge": 5
       }
     ]
   ],
-  "dock": 4,
+  "dock": 3,
   "ring": 4,
+  "tip": "A comet only hits the first speck in each row and column, so the outside clears first.",
   "solver": {
     "winnable_no_tools": true,
-    "winning_orders": 20,
+    "winning_orders": 145,
     "winning_orders_capped": false,
     "peak_dock": 0,
     "random_win": 1,
-    "states": 27,
+    "states": 93,
     "path": [
       {
         "kind": "rail",
@@ -66,6 +75,14 @@
       },
       {
         "kind": "rail",
+        "rail": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 1
+      },
+      {
+        "kind": "rail",
         "rail": 1
       },
       {
@@ -76,6 +93,8 @@
         "kind": "rail",
         "rail": 1
       }
-    ]
+    ],
+    "exact": true,
+    "sensible_win": 1
   }
 }

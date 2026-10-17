@@ -15,30 +15,35 @@
   "rails": [
     [
       {
-        "color": "Y",
-        "charge": 7
-      },
-      {
         "color": "W",
         "charge": 1
+      },
+      {
+        "color": "Y",
+        "charge": 5
       }
     ],
     [
       {
         "color": "Y",
-        "charge": 11
+        "charge": 6
+      },
+      {
+        "color": "Y",
+        "charge": 7
       }
     ]
   ],
-  "dock": 4,
+  "dock": 3,
   "ring": 4,
+  "tip": "Clear the picture. Tap a comet: it flies one lap and clears specks of its color it can see.",
   "solver": {
     "winnable_no_tools": true,
-    "winning_orders": 3,
+    "winning_orders": 6,
     "winning_orders_capped": false,
     "peak_dock": 0,
     "random_win": 1,
-    "states": 5,
+    "states": 8,
     "path": [
       {
         "kind": "rail",
@@ -51,7 +56,13 @@
       {
         "kind": "rail",
         "rail": 1
+      },
+      {
+        "kind": "rail",
+        "rail": 1
       }
-    ]
+    ],
+    "exact": true,
+    "sensible_win": 1
   }
 }

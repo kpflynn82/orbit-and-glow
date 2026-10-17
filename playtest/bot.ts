@@ -11,6 +11,8 @@
 //        doesn't count — it changes nothing). These aren't bugs, but a high number means
 //        players will feel cheated, so it's a design signal for Kevin.
 //
+// "sensible-player win" = the main difficulty ruler: a player who launches whatever can hit right
+// now, avoids parking and never plans ahead (src/engine/players.ts).
 // "random-tapper win" here = picking uniformly among every tappable comet. The solver's
 // random_win picks among its distinct useful moves (two identical docked comets count once,
 // a docked comet that would hit nothing is skipped), so the two differ by a few points.
@@ -20,7 +22,8 @@
 
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { applyMove, createState, legalMoves } from '../src/engine/engine';
-import { Solver } from '../src/engine/solver';
+import { Solver, TooManyStates } from '../src/engine/solver';
+import { sensibleWinRate } from '../src/engine/players';
 import type { GameState, LevelData } from '../src/engine/types';
 
 const GAMES = Number(process.env.GAMES ?? 1500);
@@ -46,6 +49,7 @@ interface Row {
   pathWins: boolean;
   randomWin: number;
   solverRandomWin: number;
+  sensibleWin: number; // the "tap what you can hit" player (src/engine/players.ts)
   stuckDockFull: number;
   stuckDeadEnd: number;
   doomedGames: number; // games that became unwinnable at some point
@@ -60,7 +64,18 @@ let failures = 0;
 
 for (const [i, f] of files.entries()) {
   const lv: LevelData = JSON.parse(readFileSync(`levels/${f}`, 'utf8'));
-  const solver = new Solver();
+  // Doom tracking needs the full solve; on boards too big to count it's skipped (reported as n/a).
+  const solver = new Solver(400_000);
+  let doomCheck = true;
+  const lost = (st: GameState): boolean => {
+    if (!doomCheck) return false;
+    try {
+      return solver.node(st).ways === 0;
+    } catch (e) {
+      if (e instanceof TooManyStates) { doomCheck = false; return false; }
+      throw e;
+    }
+  };
   const errors: string[] = [];
 
   // 1. The solver's path wins in the engine.
@@ -83,7 +98,7 @@ for (const [i, f] of files.entries()) {
     let moves = 0; // every tap
     let real = 0; // taps that changed the board
     while (st.status === 'playing' && moves < MAX_MOVES) {
-      if (doomAt < 0 && solver.node(st).ways === 0) doomAt = real;
+      if (doomAt < 0 && lost(st)) doomAt = real;
       const legal = legalMoves(st);
       if (legal.length === 0) {
         errors.push(`game ${g}: no legal moves but status is "playing"`);
@@ -104,7 +119,7 @@ for (const [i, f] of files.entries()) {
     }
     if (st.status === 'won') {
       wins++;
-      if (doomAt >= 0) errors.push(`game ${g}: won after the solver said it was lost`);
+      if (doomAt >= 0 && doomCheck) errors.push(`game ${g}: won after the solver said it was lost`);
     } else {
       if (st.stuckReason === 'dock-full') dockFull++;
       else deadEnd++;
@@ -123,10 +138,11 @@ for (const [i, f] of files.entries()) {
     pathWins,
     randomWin: wins / GAMES,
     solverRandomWin: lv.solver?.random_win ?? NaN,
+    sensibleWin: sensibleWinRate(lv, 400),
     stuckDockFull: dockFull,
     stuckDeadEnd: deadEnd,
     doomedGames: doomed,
-    silentDoomAvg: doomed ? silentSum / doomed : 0,
+    silentDoomAvg: doomCheck ? (doomed ? silentSum / doomed : 0) : -1, // -1 = not checked (board too big)
     silentDoomMax: silentMax,
     errors: [...new Set(errors)].slice(0, 5),
   };
@@ -134,8 +150,10 @@ for (const [i, f] of files.entries()) {
   rows.push(row);
   console.log(
     `${String(row.n).padStart(2)} ${row.name.padEnd(11)} ${row.badge.padEnd(8)} path=${pathWins ? 'WIN ' : 'FAIL'} ` +
+      `sensible-player win=${(row.sensibleWin * 100).toFixed(0).padStart(3)}%  ` +
       `random-tapper win=${(row.randomWin * 100).toFixed(1).padStart(5)}% (solver random_win ${(row.solverRandomWin * 100).toFixed(1)}%) ` +
-      `stuck: dock-full ${dockFull}, dead-end ${deadEnd}; silent-doom avg ${row.silentDoomAvg.toFixed(2)} max ${silentMax}` +
+      `stuck: dock-full ${dockFull}, dead-end ${deadEnd}; ` +
+      (doomCheck ? `silent-doom avg ${row.silentDoomAvg.toFixed(2)} max ${silentMax}` : 'silent-doom n/a (board too big to check)') +
       (row.errors.length ? `  ERRORS: ${row.errors.join('; ')}` : ''),
   );
 }

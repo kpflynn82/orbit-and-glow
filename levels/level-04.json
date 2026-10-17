@@ -13,60 +13,77 @@
   "rails": [
     [
       {
-        "color": "W",
-        "charge": 1
-      }
-    ],
-    [
+        "color": "O",
+        "charge": 5
+      },
       {
         "color": "O",
-        "charge": 6
+        "charge": 3
       },
       {
         "color": "B",
         "charge": 6
-      },
-      {
-        "color": "B",
-        "charge": 12
-      }
-    ],
-    [
-      {
-        "color": "O",
-        "charge": 6
-      },
-      {
-        "color": "B",
-        "charge": 9
       },
       {
         "color": "Y",
         "charge": 6
       }
+    ],
+    [
+      {
+        "color": "W",
+        "charge": 1
+      },
+      {
+        "color": "B",
+        "charge": 3
+      }
+    ],
+    [
+      {
+        "color": "O",
+        "charge": 4
+      },
+      {
+        "color": "B",
+        "charge": 5
+      },
+      {
+        "color": "B",
+        "charge": 7
+      },
+      {
+        "color": "B",
+        "charge": 6
+      }
     ]
   ],
-  "dock": 3,
+  "dock": 2,
   "ring": 4,
+  "tip": "Hidden colors come out as the outside clears. Think about what to send first.",
   "solver": {
     "winnable_no_tools": true,
-    "winning_orders": 158588,
-    "winning_orders_capped": false,
+    "winning_orders": 1000000,
+    "winning_orders_capped": true,
     "peak_dock": 1,
-    "random_win": 0.7834,
-    "states": 603,
+    "random_win": 0.1236,
+    "states": 2211,
     "path": [
       {
         "kind": "rail",
-        "rail": 1
+        "rail": 2
       },
       {
         "kind": "rail",
-        "rail": 1
+        "rail": 2
       },
       {
         "kind": "rail",
-        "rail": 1
+        "rail": 2
+      },
+      {
+        "kind": "rail",
+        "rail": 2
       },
       {
         "kind": "rail",
@@ -74,11 +91,15 @@
       },
       {
         "kind": "rail",
-        "rail": 2
+        "rail": 0
       },
       {
-        "kind": "dock",
-        "slot": 0
+        "kind": "rail",
+        "rail": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 0
       },
       {
         "kind": "dock",
@@ -86,13 +107,14 @@
       },
       {
         "kind": "rail",
-        "rail": 2
+        "rail": 1
       },
       {
         "kind": "rail",
-        "rail": 2
+        "rail": 1
       }
     ],
-    "exact": true
+    "exact": true,
+    "sensible_win": 0.685
   }
 }

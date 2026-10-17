@@ -1,55 +1,97 @@
 {
   "id": "ch01-l07",
-  "name": "Teapot",
+  "name": "Cat",
   "badge": "normal",
   "canvas": [
-    ".....W.....",
-    "....WWW....",
-    "..BBBBBBB..",
-    "S.BWBWBWB.S",
-    "SSBBWBWBBSS",
-    ".SBWBWBWBS.",
-    "..BBWBWBB..",
-    "...BBBBB...",
-    "...SSSSS..."
+    "O.........O",
+    "OO.......OO",
+    "OYOYOOOYOYO",
+    "OOGOOOOOGOO",
+    "OYGOYOYOGYO",
+    "OOOOOSOOOOO",
+    "OOWWWWWWWOO",
+    ".OOWWWWWOO.",
+    "..OOOOOOO.."
   ],
   "rails": [
     [
       {
         "color": "B",
-        "charge": 13
+        "charge": 2
       },
       {
-        "color": "S",
-        "charge": 13
-      }
-    ],
-    [
-      {
-        "color": "B",
+        "color": "Y",
         "charge": 7
       },
       {
-        "color": "W",
-        "charge": 14
+        "color": "O",
+        "charge": 8
+      },
+      {
+        "color": "O",
+        "charge": 7
+      },
+      {
+        "color": "O",
+        "charge": 5
       }
     ],
     [
       {
-        "color": "B",
-        "charge": 10
+        "color": "S",
+        "charge": 1
+      },
+      {
+        "color": "O",
+        "charge": 7
+      },
+      {
+        "color": "O",
+        "charge": 7
+      },
+      {
+        "color": "Y",
+        "charge": 3
+      },
+      {
+        "color": "O",
+        "charge": 3
+      }
+    ],
+    [
+      {
+        "color": "W",
+        "charge": 6
+      },
+      {
+        "color": "W",
+        "charge": 6
+      },
+      {
+        "color": "O",
+        "charge": 5
+      },
+      {
+        "color": "O",
+        "charge": 5
+      },
+      {
+        "color": "O",
+        "charge": 5
       }
     ]
   ],
   "dock": 2,
   "ring": 4,
+  "fusion": true,
+  "tip": "Yellow + Blue = Green. Send a comet that can’t hit anything yet and it parks, ready to fuse.",
   "solver": {
     "winnable_no_tools": true,
-    "winning_orders": 382,
-    "winning_orders_capped": false,
-    "peak_dock": 1,
-    "random_win": 0.6555,
-    "states": 184,
+    "winning_orders": 1000000,
+    "winning_orders_capped": true,
+    "peak_dock": 2,
+    "random_win": 0.0021,
+    "states": 33846,
     "path": [
       {
         "kind": "rail",
@@ -61,15 +103,64 @@
       },
       {
         "kind": "rail",
-        "rail": 1
+        "rail": 0
       },
       {
-        "kind": "dock",
-        "slot": 0
+        "kind": "rail",
+        "rail": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 2
+      },
+      {
+        "kind": "rail",
+        "rail": 0
       },
       {
         "kind": "rail",
         "rail": 1
+      },
+      {
+        "kind": "rail",
+        "rail": 1
+      },
+      {
+        "kind": "rail",
+        "rail": 1
+      },
+      {
+        "kind": "dock",
+        "slot": 1
+      },
+      {
+        "kind": "rail",
+        "rail": 1
+      },
+      {
+        "kind": "fuse",
+        "from": 0,
+        "onto": 1
+      },
+      {
+        "kind": "rail",
+        "rail": 1
+      },
+      {
+        "kind": "dock",
+        "slot": 1
+      },
+      {
+        "kind": "dock",
+        "slot": 1
+      },
+      {
+        "kind": "rail",
+        "rail": 2
+      },
+      {
+        "kind": "rail",
+        "rail": 2
       },
       {
         "kind": "rail",
@@ -78,8 +169,13 @@
       {
         "kind": "dock",
         "slot": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 2
       }
     ],
-    "exact": true
+    "exact": true,
+    "sensible_win": 0.555
   }
 }

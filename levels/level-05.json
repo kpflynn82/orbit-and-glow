@@ -17,93 +17,96 @@
   "rails": [
     [
       {
-        "color": "Y",
-        "charge": 6
-      }
-    ],
-    [
-      {
         "color": "R",
-        "charge": 5
-      },
-      {
-        "color": "Y",
-        "charge": 10
-      },
-      {
-        "color": "S",
-        "charge": 7
-      },
-      {
-        "color": "S",
-        "charge": 5
-      }
-    ],
-    [
-      {
-        "color": "R",
-        "charge": 5
-      },
-      {
-        "color": "R",
-        "charge": 6
-      },
-      {
-        "color": "S",
         "charge": 4
+      }
+    ],
+    [
+      {
+        "color": "R",
+        "charge": 4
+      },
+      {
+        "color": "Y",
+        "charge": 5
+      },
+      {
+        "color": "S",
+        "charge": 6
+      }
+    ],
+    [
+      {
+        "color": "R",
+        "charge": 4
+      },
+      {
+        "color": "R",
+        "charge": 4
+      },
+      {
+        "color": "Y",
+        "charge": 11
+      },
+      {
+        "color": "S",
+        "charge": 10
       }
     ]
   ],
   "dock": 2,
   "ring": 4,
+  "tip": "Tricky: the obvious launch isn’t always the right one.",
   "solver": {
     "winnable_no_tools": true,
-    "winning_orders": 29151,
+    "winning_orders": 6134,
     "winning_orders_capped": false,
-    "peak_dock": 1,
-    "random_win": 0.3464,
-    "states": 931,
+    "peak_dock": 2,
+    "random_win": 0.0688,
+    "states": 340,
     "path": [
+      {
+        "kind": "rail",
+        "rail": 1
+      },
+      {
+        "kind": "rail",
+        "rail": 1
+      },
+      {
+        "kind": "rail",
+        "rail": 1
+      },
+      {
+        "kind": "rail",
+        "rail": 2
+      },
+      {
+        "kind": "rail",
+        "rail": 2
+      },
+      {
+        "kind": "rail",
+        "rail": 2
+      },
+      {
+        "kind": "dock",
+        "slot": 0
+      },
       {
         "kind": "rail",
         "rail": 0
       },
       {
-        "kind": "rail",
-        "rail": 1
-      },
-      {
         "kind": "dock",
-        "slot": 0
-      },
-      {
-        "kind": "rail",
-        "rail": 1
-      },
-      {
-        "kind": "rail",
-        "rail": 1
-      },
-      {
-        "kind": "rail",
-        "rail": 1
-      },
-      {
-        "kind": "rail",
-        "rail": 2
-      },
-      {
-        "kind": "dock",
-        "slot": 0
-      },
-      {
-        "kind": "rail",
-        "rail": 2
+        "slot": 1
       },
       {
         "kind": "rail",
         "rail": 2
       }
-    ]
+    ],
+    "exact": true,
+    "sensible_win": 0.215
   }
 }

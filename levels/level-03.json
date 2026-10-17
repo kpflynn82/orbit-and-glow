@@ -17,11 +17,19 @@
     [
       {
         "color": "R",
-        "charge": 14
+        "charge": 3
       },
       {
-        "color": "R",
-        "charge": 12
+        "color": "S",
+        "charge": 4
+      },
+      {
+        "color": "S",
+        "charge": 5
+      },
+      {
+        "color": "S",
+        "charge": 5
       }
     ],
     [
@@ -30,26 +38,39 @@
         "charge": 7
       },
       {
-        "color": "S",
-        "charge": 14
-      }
-    ],
-    [
+        "color": "R",
+        "charge": 5
+      },
       {
         "color": "W",
         "charge": 4
       }
+    ],
+    [
+      {
+        "color": "R",
+        "charge": 5
+      },
+      {
+        "color": "R",
+        "charge": 6
+      },
+      {
+        "color": "R",
+        "charge": 7
+      }
     ]
   ],
-  "dock": 4,
+  "dock": 3,
   "ring": 4,
+  "tip": "A comet with charge left parks in the Dock — tap it later. If the Dock is full, you’re stuck.",
   "solver": {
     "winnable_no_tools": true,
-    "winning_orders": 562,
+    "winning_orders": 9398,
     "winning_orders_capped": false,
-    "peak_dock": 1,
+    "peak_dock": 0,
     "random_win": 1,
-    "states": 173,
+    "states": 406,
     "path": [
       {
         "kind": "rail",
@@ -60,8 +81,16 @@
         "rail": 0
       },
       {
-        "kind": "dock",
-        "slot": 0
+        "kind": "rail",
+        "rail": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 1
       },
       {
         "kind": "rail",
@@ -72,18 +101,19 @@
         "rail": 2
       },
       {
-        "kind": "dock",
-        "slot": 0
-      },
-      {
         "kind": "rail",
         "rail": 1
       },
       {
-        "kind": "dock",
-        "slot": 0
+        "kind": "rail",
+        "rail": 2
+      },
+      {
+        "kind": "rail",
+        "rail": 2
       }
     ],
-    "exact": true
+    "exact": true,
+    "sensible_win": 1
   }
 }

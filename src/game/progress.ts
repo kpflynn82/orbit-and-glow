@@ -1,6 +1,7 @@
 // Per-player progress in this browser. Storage can be missing or blocked (private windows,
 // previews), so every read and write is wrapped and the game works without it.
-const KEY = 'orbit-glow-progress-v1';
+// v2: chapter 1 was rebuilt (honest difficulty + fusion), so old stars don't carry over.
+const KEY = 'orbit-glow-progress-v2';
 
 export interface Progress {
   completed: number[]; // level indexes

@@ -11,14 +11,15 @@ let problems = 0;
 for (const f of files) {
   const lv: LevelData = JSON.parse(readFileSync(`levels/${f}`, 'utf8'));
   const t0 = Date.now();
-  const r = analyzeLevel(lv, 400_000); // exact count unless the board is huge
+  const r = analyzeLevel(lv, 150_000); // same cap as the generator: exact unless the board is huge
   const old = lv.solver;
   const same =
     old !== undefined &&
     old.winnable_no_tools === r.winnable_no_tools &&
     old.winning_orders === r.winning_orders &&
     old.peak_dock === r.peak_dock &&
-    old.random_win === r.random_win;
+    old.random_win === r.random_win &&
+    old.sensible_win === r.sensible_win;
   const flag = !r.winnable_no_tools ? 'UNWINNABLE' : !r.exact ? 'ok (estimated: too big to count)' : same ? 'ok' : 'CHANGED';
   if (!flag.startsWith('ok')) problems++;
   console.log(

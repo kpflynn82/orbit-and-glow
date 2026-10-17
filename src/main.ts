@@ -34,8 +34,15 @@ declare global {
       load: (i: number) => void;
       /** Where a move's comet sits, in page pixels (for real clicks). */
       screenPoint: (m: Move) => { x: number; y: number };
+      /** Where a Dock slot is, in page pixels (for drag-to-fuse). */
+      slotPoint: (slot: number) => { x: number; y: number };
     };
   }
+}
+
+function toPage(p: { x: number; y: number }): { x: number; y: number } {
+  const rect = game.canvas.getBoundingClientRect();
+  return { x: rect.left + (p.x / GAME_W) * rect.width, y: rect.top + (p.y / GAME_H) * rect.height };
 }
 
 window.__orbit = {
@@ -47,12 +54,6 @@ window.__orbit = {
   moves: () => scene.state?.moves ?? 0,
   speed: (n) => scene.setSpeed(n),
   load: (i) => scene.loadLevel(i),
-  screenPoint: (m) => {
-    const p = scene.pointFor(m);
-    const rect = game.canvas.getBoundingClientRect();
-    return {
-      x: rect.left + (p.x / GAME_W) * rect.width,
-      y: rect.top + (p.y / GAME_H) * rect.height,
-    };
-  },
+  screenPoint: (m) => toPage(scene.pointFor(m)),
+  slotPoint: (slot) => toPage(scene.slotPoint(slot)),
 };

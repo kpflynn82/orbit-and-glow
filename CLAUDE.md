@@ -26,8 +26,11 @@ the source of truth); the full GDD lives there too (`design-docs/gdd-orbit-and-g
 
 ## Never change without Kevin saying so
 
-- The rules in `src/engine/` (lap order, first-cell-only, parking, both stuck kinds). A rules change
-  means re-solving every level (`npm run solve`) and updating the tests in the same commit.
+- The rules in `src/engine/` (lap order, first-cell-only, parking, fusion, the comet waiting to park,
+  both stuck kinds). A rules change means re-solving every level (`npm run solve`) and updating the
+  tests in the same commit.
+- How difficulty is judged: the "sensible player" in `src/engine/players.ts` (Kevin's playtest showed
+  a random-tapping ruler lies). Tricky and Starfall must beat it (tests enforce this).
 - Shipped level files `levels/level-*.json` once Kevin has played them — add new levels instead.
 - Results never depend on timing. Animation replays a result that is already decided at launch.
 - Our own expression only: no names, UI words, sounds, characters or layouts from Jelly Busters,
@@ -38,7 +41,7 @@ the source of truth); the full GDD lives there too (`design-docs/gdd-orbit-and-g
 
 | Folder | What's in it |
 |---|---|
-| `src/engine/` | The rules (`engine.ts`) and the solver (`solver.ts`). Plain TypeScript, no Phaser, so tests, tools and the bot run the exact same rules as the game |
+| `src/engine/` | The rules (`engine.ts`), the solver (`solver.ts`) and the player models used as difficulty rulers (`players.ts`). Plain TypeScript, no Phaser, so tests, tools and the bot run the exact same rules as the game |
 | `src/game/` | The Phaser screen: drawing, animation, HUD, overlays. Never decides an outcome |
 | `levels/` | One JSON file per level, each with its solver report |
 | `tools/` | `pictures.ts` (gray-box pictures), `generate-levels.ts`, `solve-all.ts`, `bench-16.ts`, `inline-build.mjs` |

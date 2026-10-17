@@ -19,70 +19,124 @@
   "rails": [
     [
       {
-        "color": "B",
-        "charge": 2
-      },
-      {
-        "color": "O",
-        "charge": 11
+        "color": "R",
+        "charge": 3
       },
       {
         "color": "Y",
-        "charge": 10
+        "charge": 3
+      },
+      {
+        "color": "W",
+        "charge": 4
+      },
+      {
+        "color": "O",
+        "charge": 5
+      },
+      {
+        "color": "Y",
+        "charge": 4
+      },
+      {
+        "color": "Y",
+        "charge": 6
       }
     ],
     [
       {
-        "color": "W",
+        "color": "R",
         "charge": 8
       },
       {
         "color": "W",
-        "charge": 12
-      },
-      {
-        "color": "O",
-        "charge": 16
-      }
-    ],
-    [
-      {
-        "color": "O",
-        "charge": 13
+        "charge": 5
       },
       {
         "color": "Y",
-        "charge": 16
+        "charge": 3
+      },
+      {
+        "color": "O",
+        "charge": 6
+      },
+      {
+        "color": "O",
+        "charge": 8
       }
     ],
     [
       {
-        "color": "O",
-        "charge": 12
+        "color": "W",
+        "charge": 5
+      },
+      {
+        "color": "B",
+        "charge": 2
       },
       {
         "color": "S",
+        "charge": 8
+      },
+      {
+        "color": "Y",
+        "charge": 5
+      },
+      {
+        "color": "O",
+        "charge": 4
+      }
+    ],
+    [
+      {
+        "color": "W",
+        "charge": 6
+      },
+      {
+        "color": "Y",
+        "charge": 4
+      },
+      {
+        "color": "Y",
+        "charge": 7
+      },
+      {
+        "color": "Y",
+        "charge": 4
+      },
+      {
+        "color": "O",
         "charge": 8
       }
     ]
   ],
   "dock": 2,
   "ring": 4,
+  "fusion": true,
+  "tip": "Starfall: the hardest kind of level. Retry is always free.",
   "solver": {
     "winnable_no_tools": true,
     "winning_orders": 1000000,
     "winning_orders_capped": true,
-    "peak_dock": 1,
-    "random_win": 0.0501,
-    "states": 47051,
+    "peak_dock": 2,
+    "random_win": 0,
+    "states": 110985,
     "path": [
       {
         "kind": "rail",
-        "rail": 1
+        "rail": 3
       },
       {
         "kind": "rail",
-        "rail": 2
+        "rail": 3
+      },
+      {
+        "kind": "rail",
+        "rail": 3
+      },
+      {
+        "kind": "rail",
+        "rail": 3
       },
       {
         "kind": "rail",
@@ -93,12 +147,57 @@
         "slot": 0
       },
       {
-        "kind": "rail",
-        "rail": 1
+        "kind": "dock",
+        "slot": 0
+      },
+      {
+        "kind": "dock",
+        "slot": 0
       },
       {
         "kind": "rail",
         "rail": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 0
+      },
+      {
+        "kind": "fuse",
+        "from": 0,
+        "onto": 1
+      },
+      {
+        "kind": "rail",
+        "rail": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 0
+      },
+      {
+        "kind": "dock",
+        "slot": 0
+      },
+      {
+        "kind": "dock",
+        "slot": 0
+      },
+      {
+        "kind": "dock",
+        "slot": 1
+      },
+      {
+        "kind": "rail",
+        "rail": 1
+      },
+      {
+        "kind": "dock",
+        "slot": 0
       },
       {
         "kind": "rail",
@@ -106,7 +205,56 @@
       },
       {
         "kind": "rail",
+        "rail": 2
+      },
+      {
+        "kind": "dock",
+        "slot": 0
+      },
+      {
+        "kind": "dock",
+        "slot": 0
+      },
+      {
+        "kind": "dock",
+        "slot": 0
+      },
+      {
+        "kind": "dock",
+        "slot": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 2
+      },
+      {
+        "kind": "rail",
+        "rail": 2
+      },
+      {
+        "kind": "rail",
+        "rail": 2
+      },
+      {
+        "kind": "dock",
+        "slot": 0
+      },
+      {
+        "kind": "rail",
         "rail": 0
+      },
+      {
+        "kind": "fuse",
+        "from": 1,
+        "onto": 0
+      },
+      {
+        "kind": "dock",
+        "slot": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 1
       },
       {
         "kind": "dock",
@@ -118,7 +266,7 @@
       },
       {
         "kind": "rail",
-        "rail": 0
+        "rail": 1
       },
       {
         "kind": "dock",
@@ -126,8 +274,10 @@
       },
       {
         "kind": "rail",
-        "rail": 3
+        "rail": 1
       }
-    ]
+    ],
+    "exact": true,
+    "sensible_win": 0
   }
 }

@@ -16,7 +16,21 @@ export interface Comet {
 
 export type Badge = 'normal' | 'tricky' | 'starfall';
 
-export type Move = { kind: 'rail'; rail: number } | { kind: 'dock'; slot: number };
+/** The three primaries fuse in pairs; nothing else fuses (GDD §3.3). */
+export const FUSE: Partial<Record<Color, Partial<Record<Color, Color>>>> = {
+  R: { Y: 'O', B: 'P' },
+  Y: { R: 'O', B: 'G' },
+  B: { R: 'P', Y: 'G' },
+};
+
+/**
+ * Launch the front comet of a rail, launch a docked comet, or fuse two docked comets (drag the
+ * one in slot `from` onto the one in slot `onto`; the new comet sits in `onto`).
+ */
+export type Move =
+  | { kind: 'rail'; rail: number }
+  | { kind: 'dock'; slot: number }
+  | { kind: 'fuse'; from: number; onto: number };
 
 export interface SolverReport {
   /** Can the level be won with no tools? */
@@ -33,6 +47,12 @@ export interface SolverReport {
    * A rough difficulty ruler: real players do far better than random.
    */
   random_win: number;
+  /**
+   * Share of games won by the "sensible player" (src/engine/players.ts): launch what can hit now,
+   * avoid parking, fuse when the new color can hit now, no planning ahead. The main difficulty
+   * ruler since Kevin's first playtest: Tricky and Starfall levels must beat it.
+   */
+  sensible_win?: number;
   /** Distinct board states the solver visited. */
   states: number;
   /** A winning path (the one with the lowest peak Dock use), for the bot and hints. */
@@ -57,6 +77,10 @@ export interface LevelData {
   dock: number;
   /** How many comets may be flying at once (visual only — results never depend on it). */
   ring: number;
+  /** Can docked comets be fused in this level? (From level 6; GDD §5.) */
+  fusion?: boolean;
+  /** A one-line coach tip shown at the top of the level (early levels and new ideas). */
+  tip?: string;
   solver?: SolverReport;
 }
 
@@ -78,6 +102,7 @@ export interface Shot {
 }
 
 export interface LaunchResult {
+  type: 'launch';
   move: Move;
   comet: Comet;
   shots: Shot[];
@@ -87,7 +112,27 @@ export interface LaunchResult {
   parkedSlot: number | null;
   /** The Dock slot it left from, for Dock launches. */
   fromSlot: number | null;
+  /** The Dock was full but a fusion can make room: the comet waits at the gate (state.holding). */
+  held: boolean;
 }
+
+export interface FuseResult {
+  type: 'fuse';
+  move: Move;
+  /** The new comet (in slot `onto`). */
+  comet: Comet;
+  a: Comet;
+  b: Comet;
+  fromSlot: number;
+  onto: number;
+  /** A fusion never shoots; these keep the result shape the same as a launch. */
+  shots: Shot[];
+  leftover: 0;
+  /** If a comet was waiting to park, the slot it parked in after the fusion made room. */
+  parkedSlot: number | null;
+}
+
+export type MoveResult = LaunchResult | FuseResult;
 
 export type Status = 'playing' | 'won' | 'stuck';
 export type StuckReason = 'dock-full' | 'dead-end';
@@ -101,5 +146,11 @@ export interface GameState {
   dock: (Comet | null)[];
   status: Status;
   stuckReason: StuckReason | null;
+  /** Launches and fusions made so far. */
   moves: number;
+  /** Whether fusion is allowed in this level. */
+  fusion: boolean;
+  /** A comet back from its lap with charge left, waiting at the gate because the Dock is full
+   *  (only while a fusion could make room; otherwise the level is stuck). */
+  holding: Comet | null;
 }

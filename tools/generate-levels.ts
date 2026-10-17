@@ -1,27 +1,31 @@
-// Builds the M1 level files from the gray-box pictures.
+// Builds the level files from the gray-box pictures (chapter 1, second version).
 //
-// Plain words: for each level we count the dust of each color and split each color's total into
-// comets (charges add up exactly, so leftovers matter). We deal the comets onto the rails, then
-// improve the deal step by step — swap two comets, move one to another rail, split or merge two
-// of the same color — checking after every change how the layout plays. A change is kept if the
-// level is still winnable without tools and its difficulty moves toward the level's target. If no
-// layout reaches the target with the planned Dock, it tries again with one Dock slot fewer.
-// Every saved level stores its full solver report.
+// Plain words: for each level we count the dust of each color and turn it into comets whose
+// charges add up exactly to the dust. In fusion levels, some mixed-color dust (orange, green,
+// purple) gets no comets of its own: its charge is given to comets of the two parent colors
+// instead, so the player has to park those, fuse them and send the new comet. We deal the comets
+// onto the rails, then improve the deal step by step — swap two comets, move one to another rail,
+// split or merge two of the same color — checking after every change how the layout plays.
 //
-// Speed: during the search each layout gets a quick check — the solver finds one winning order
-// (proof it's fair) and 1,500 random games estimate its difficulty. Only the chosen layout gets
-// the full (exact) solve that is saved with the level.
+// The ruler (since Kevin's first playtest): the "sensible player" in src/engine/players.ts, who
+// launches whatever can hit right now, avoids parking and never plans ahead. Each level has a
+// target band for how often that player wins: early levels let it win, normal levels make it lose
+// sometimes, Tricky and Starfall levels must beat it most of the time. A layout only counts if the
+// solver proves it can be won (and, where the plan says so, that winning needs the Dock or a
+// fusion). If no layout reaches the target with the planned Dock, it tries one slot fewer.
 //
-// Difficulty number: `random_win`, the chance that a player tapping uniformly at random wins.
-// Real players are far better than random, so this is a relative ruler, not a prediction.
+// Speed: during the search each layout gets a quick check (one proven win + 100 sensible-player
+// games). Only the chosen layout gets the full solve that is saved with the level.
 //
 // Run: npm run levels   (writes any missing levels/level-NN.json; ONLY=3,4 for some levels)
-// Existing level files are never overwritten unless FORCE=1 — players may already know them, and
-// the generator has changed since some were made (levels 5 and 10 came from an earlier version).
+// Existing level files are never overwritten unless FORCE=1 — never rebuild a level Kevin has
+// played without his OK.
 
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { pathToFileURL } from 'node:url';
 import { createState, firstCellAlong, lapSteps, parseCanvas } from '../src/engine/engine';
-import { analyzeLevel, findWin, sampleLevel, TooManyStates } from '../src/engine/solver';
+import { sensibleWinRate } from '../src/engine/players';
+import { analyzeLevel, findWin, TooManyStates } from '../src/engine/solver';
 import type { Badge, Color, Comet, LevelData } from '../src/engine/types';
 import { PICTURES } from './pictures';
 
@@ -30,47 +34,80 @@ interface Plan {
   badge: Badge;
   rails: number;
   dock: number;
-  charge: [number, number];
-  /** Target band for random_win. */
-  target: [number, number];
-  /** Every winning path must use the Dock at least once (teaches the Dock). */
-  minPeak?: number;
   /** Dock size to try if the planned one can't reach the target (default: one fewer, at least 2). */
   altDock?: number;
+  charge: [number, number];
+  /** Target band for how often the sensible player wins. */
+  target: [number, number];
+  /** Every win must park a comet at least once (teaches the Dock). */
+  minPeak?: number;
+  /** Fusion allowed in this level. */
+  fusion?: boolean;
+  /** Share of each mixed color's dust that must be made by fusion (no comets of its own). */
+  viaFusion?: Partial<Record<Color, number>>;
+  /** Winning needs at least one fusion. */
+  mustFuse?: boolean;
+  tip?: string;
 }
 
 const PLANS: Plan[] = [
-  { picture: 'Crescent', badge: 'normal', rails: 2, dock: 4, charge: [7, 12], target: [0.85, 1] },
-  { picture: 'Heart', badge: 'normal', rails: 2, dock: 4, charge: [6, 12], target: [0.7, 1] },
-  // Level 3 teaches the Dock: every win parks a comet, but with a Dock of 4 it can't be lost.
-  { picture: 'Mushroom', badge: 'normal', rails: 3, dock: 4, altDock: 4, charge: [6, 14], target: [0.6, 1], minPeak: 1 },
-  { picture: 'Fish', badge: 'normal', rails: 3, dock: 3, charge: [6, 14], target: [0.4, 0.8] },
-  { picture: 'Lantern', badge: 'tricky', rails: 3, dock: 2, charge: [4, 9], target: [0.12, 0.35] },
-  { picture: 'Apple Tree', badge: 'normal', rails: 3, dock: 3, charge: [6, 14], target: [0.4, 0.8] },
-  { picture: 'Teapot', badge: 'normal', rails: 3, dock: 3, charge: [6, 14], target: [0.3, 0.7] },
-  { picture: 'Cat', badge: 'normal', rails: 3, dock: 3, charge: [7, 16], target: [0.3, 0.7] },
-  { picture: 'Sailboat', badge: 'normal', rails: 3, dock: 3, charge: [6, 14], target: [0.25, 0.65] },
-  { picture: 'Owl', badge: 'starfall', rails: 4, dock: 2, charge: [7, 16], target: [0.03, 0.15] },
-  { picture: 'Flower', badge: 'normal', rails: 3, dock: 3, charge: [7, 16], target: [0.35, 0.75] },
-  { picture: 'Whale', badge: 'normal', rails: 4, dock: 3, charge: [7, 16], target: [0.25, 0.65] },
-  { picture: 'House', badge: 'normal', rails: 4, dock: 3, charge: [7, 16], target: [0.2, 0.6] },
-  { picture: 'Planet', badge: 'normal', rails: 4, dock: 3, charge: [8, 18], target: [0.2, 0.6] },
-  { picture: 'Snail', badge: 'tricky', rails: 4, dock: 3, charge: [7, 16], target: [0.08, 0.25] },
+  { picture: 'Crescent', badge: 'normal', rails: 2, dock: 3, charge: [5, 9], target: [0.9, 1],
+    tip: 'Clear the picture. Tap a comet: it flies one lap and clears specks of its color it can see.' },
+  { picture: 'Heart', badge: 'normal', rails: 2, dock: 3, charge: [5, 9], target: [0.85, 1],
+    tip: 'A comet only hits the first speck in each row and column, so the outside clears first.' },
+  { picture: 'Mushroom', badge: 'normal', rails: 3, dock: 3, altDock: 3, charge: [3, 7], target: [0.75, 1], minPeak: 1,
+    tip: 'A comet with charge left parks in the Dock — tap it later. If the Dock is full, you’re stuck.' },
+  { picture: 'Fish', badge: 'normal', rails: 3, dock: 3, charge: [3, 7], target: [0.5, 0.85],
+    tip: 'Hidden colors come out as the outside clears. Think about what to send first.' },
+  { picture: 'Lantern', badge: 'tricky', rails: 3, dock: 2, charge: [4, 9], target: [0, 0.25],
+    tip: 'Tricky: the obvious launch isn’t always the right one.' },
+  { picture: 'Apple Tree', badge: 'normal', rails: 3, dock: 3, charge: [3, 8], target: [0.4, 0.95],
+    fusion: true, viaFusion: { O: 1 }, mustFuse: true,
+    tip: 'New: drag a docked comet onto another to fuse them. Red + Yellow = Orange, charges add.' },
+  { picture: 'Cat', badge: 'normal', rails: 3, dock: 3, charge: [3, 8], target: [0.4, 0.85],
+    fusion: true, viaFusion: { G: 1 }, mustFuse: true,
+    tip: 'Yellow + Blue = Green. Send a comet that can’t hit anything yet and it parks, ready to fuse.' },
+  { picture: 'Teapot', badge: 'normal', rails: 3, dock: 3, charge: [4, 9], target: [0.35, 0.8],
+    fusion: true, viaFusion: { P: 1 }, mustFuse: true },
+  { picture: 'Sailboat', badge: 'normal', rails: 3, dock: 3, charge: [4, 10], target: [0.3, 0.75],
+    fusion: true, viaFusion: { O: 1 }, mustFuse: true },
+  { picture: 'Owl', badge: 'starfall', rails: 4, dock: 2, charge: [3, 8], target: [0, 0.1],
+    fusion: true, viaFusion: { O: 0.4 },
+    tip: 'Starfall: the hardest kind of level. Retry is always free.' },
+  { picture: 'Flower', badge: 'normal', rails: 3, dock: 3, charge: [4, 9], target: [0.3, 0.75],
+    fusion: true, viaFusion: { G: 1 }, mustFuse: true },
+  { picture: 'Whale', badge: 'normal', rails: 4, dock: 3, charge: [3, 8], target: [0.3, 0.75], fusion: true },
+  { picture: 'House', badge: 'normal', rails: 4, dock: 3, charge: [4, 9], target: [0.25, 0.7],
+    fusion: true, viaFusion: { G: 1 }, mustFuse: true },
+  { picture: 'Planet', badge: 'normal', rails: 4, dock: 3, charge: [4, 9], target: [0.25, 0.7],
+    fusion: true, viaFusion: { P: 0.5 }, mustFuse: true },
+  { picture: 'Snail', badge: 'tricky', rails: 4, dock: 3, charge: [3, 8], target: [0, 0.25],
+    fusion: true, viaFusion: { O: 0.6 }, mustFuse: true },
   // A breather after Tricky level 15.
-  { picture: 'Kite', badge: 'normal', rails: 4, dock: 3, altDock: 3, charge: [8, 18], target: [0.55, 0.8] },
-  { picture: 'Cupcake', badge: 'normal', rails: 4, dock: 3, charge: [8, 18], target: [0.15, 0.5] },
-  { picture: 'Butterfly', badge: 'normal', rails: 4, dock: 3, charge: [8, 18], target: [0.15, 0.5] },
-  { picture: 'Lighthouse', badge: 'normal', rails: 4, dock: 3, charge: [8, 18], target: [0.15, 0.5] },
-  { picture: 'Sun', badge: 'starfall', rails: 4, dock: 2, charge: [6, 10], target: [0.02, 0.12] },
+  { picture: 'Kite', badge: 'normal', rails: 4, dock: 3, altDock: 3, charge: [4, 9], target: [0.6, 0.95],
+    fusion: true, viaFusion: { P: 0.4 } },
+  { picture: 'Cupcake', badge: 'normal', rails: 4, dock: 3, charge: [4, 9], target: [0.25, 0.7],
+    fusion: true, viaFusion: { O: 0.6 }, mustFuse: true },
+  { picture: 'Butterfly', badge: 'normal', rails: 4, dock: 3, charge: [4, 9], target: [0.25, 0.7],
+    fusion: true, viaFusion: { O: 1, P: 0.3 }, mustFuse: true },
+  { picture: 'Lighthouse', badge: 'normal', rails: 4, dock: 3, charge: [4, 9], target: [0.25, 0.7],
+    fusion: true, viaFusion: { G: 1 }, mustFuse: true },
+  { picture: 'Sun', badge: 'starfall', rails: 4, dock: 2, charge: [3, 8], target: [0, 0.08],
+    fusion: true, viaFusion: { O: 0.5 }, mustFuse: true },
 ];
 
-const STEPS = Number(process.env.STEPS ?? 500);
-const STATE_CAP = Number(process.env.STATE_CAP ?? 200_000); // search budget for the one-win proof
-const SAMPLES = Number(process.env.SAMPLES ?? 1500);
+const STEPS = Number(process.env.STEPS ?? 250);
+const STATE_CAP = Number(process.env.STATE_CAP ?? 60_000); // search budget for the one-win proof
+const GAMES = Number(process.env.GAMES ?? 100); // sensible-player games per layout during the search
+
+const PARENTS: Partial<Record<Color, [Color, Color]>> = { O: ['R', 'Y'], G: ['Y', 'B'], P: ['R', 'B'] };
 
 interface Quick {
-  random_win: number;
-  usesDock: boolean; // no win is possible without parking at least once
+  sensible: number;
+  /** Win rate of a sensible player who slips (random move) 25% of the time — a smoother signal. */
+  slipping: number;
+  usesDock: boolean;
+  needsFuse: boolean;
 }
 
 function rng(seed: number) {
@@ -125,16 +162,34 @@ function colorDepth(rows: string[]): Map<Color, number> {
   return new Map([...sum].map(([c, [a, n]]) => [c, a / n]));
 }
 
-function initialDeal(rows: string[], plan: Plan, rand: () => number, bias: number): Comet[][] {
+/** Total comet charge per color: the dust, with fusion-only mixed colors moved onto their parents. */
+function chargePlan(rows: string[], plan: Plan, rand: () => number): Map<Color, number> {
   const { cells } = parseCanvas(rows);
-  const counts = new Map<Color, number>();
-  for (const c of cells) if (c) counts.set(c, (counts.get(c) ?? 0) + 1);
+  const dust = new Map<Color, number>();
+  for (const c of cells) if (c) dust.set(c, (dust.get(c) ?? 0) + 1);
+  const total = new Map<Color, number>();
+  const add = (c: Color, n: number) => { if (n > 0) total.set(c, (total.get(c) ?? 0) + n); };
+  for (const [c, n] of dust) {
+    const share = plan.fusion ? plan.viaFusion?.[c] ?? 0 : 0;
+    const parents = PARENTS[c];
+    if (!share || !parents || n < 2) { add(c, n); continue; } // a fusion needs at least 1 + 1 charge
+    const viaFusion = Math.min(n, Math.max(2, Math.round(n * share)));
+    add(c, n - viaFusion);
+    const toFirst = Math.max(1, Math.min(viaFusion - 1, Math.round(viaFusion * (0.3 + 0.4 * rand()))));
+    add(parents[0], toFirst);
+    add(parents[1], viaFusion - toFirst);
+  }
+  return total;
+}
+
+function initialDeal(rows: string[], plan: Plan, rand: () => number, bias: number): Comet[][] {
   const depth = colorDepth(rows);
+  const deepest = Math.max(0, ...depth.values()) + 1; // fusion fuel colors aren't in the picture
   const comets: Comet[] = [];
-  for (const [color, n] of counts) for (const ch of split(n, plan.charge, rand)) comets.push({ color, charge: ch });
+  for (const [color, n] of chargePlan(rows, plan, rand)) for (const ch of split(n, plan.charge, rand)) comets.push({ color, charge: ch });
   // bias > 0: hidden colors tend toward the front (they'll have to wait in the Dock).
   // bias < 0: visible colors first (an easy, almost always winnable start). Plus noise.
-  const keyed = comets.map((c) => ({ c, k: -bias * (depth.get(c.color) ?? 0) + rand() * 2.5 }));
+  const keyed = comets.map((c) => ({ c, k: -bias * (depth.get(c.color) ?? deepest) + rand() * 2.5 }));
   keyed.sort((a, b) => a.k - b.k);
   const rails: Comet[][] = Array.from({ length: plan.rails }, () => []);
   keyed.forEach(({ c }, i) => rails[i % plan.rails].push(c));
@@ -193,19 +248,23 @@ function mutate(rails: Comet[][], plan: Plan, rand: () => number): Comet[][] {
 
 function score(r: Quick | null, plan: Plan): number {
   if (!r) return Infinity;
-  if (plan.minPeak && !r.usesDock) return 100 + (1 - r.random_win);
+  if (!r.usesDock || !r.needsFuse) return 100 + r.sensible;
   const [lo, hi] = plan.target;
-  if (r.random_win >= lo && r.random_win <= hi) return Math.abs(r.random_win - (lo + hi) / 2) / 10;
-  return r.random_win > hi ? r.random_win - hi + 1 : lo - r.random_win + 1;
+  if (r.sensible >= lo && r.sensible <= hi) return Math.abs(r.sensible - (lo + hi) / 2) / 10;
+  // Too easy: also reward layouts that punish slips, so the search has a slope to follow even
+  // where the sensible player always wins.
+  return r.sensible > hi ? r.sensible - hi + 1 + 0.5 * r.slipping : lo - r.sensible + 1;
 }
 
 function evaluate(level: LevelData, plan: Plan): Quick | null {
   try {
     const start = createState(level);
-    if (!findWin(start, STATE_CAP)) return null;
+    if (start.status !== 'playing' || !findWin(start, STATE_CAP)) return null;
     // "Uses the Dock" = the same layout with no Dock at all can't be won.
     const usesDock = plan.minPeak ? findWin(createState({ ...level, dock: 0 }), STATE_CAP) === null : true;
-    return { random_win: sampleLevel(start, SAMPLES, 11).randomWin, usesDock };
+    // "Needs a fusion" = the same layout with fusion switched off can't be won.
+    const needsFuse = plan.mustFuse ? findWin(createState({ ...level, fusion: false }), STATE_CAP) === null : true;
+    return { sensible: sensibleWinRate(level, GAMES, 7), slipping: sensibleWinRate(level, GAMES / 2, 8, 0.25), usesDock, needsFuse };
   } catch (e) {
     if (e instanceof TooManyStates) return null;
     throw e;
@@ -223,25 +282,38 @@ function buildLevel(i: number, plan: Plan, dock: number): { level: LevelData; s:
     rails,
     dock,
     ring: 4,
+    ...(plan.fusion ? { fusion: true } : {}),
+    ...(plan.tip ? { tip: plan.tip } : {}),
   });
-  let best: { rails: Comet[][]; report: Quick; s: number } | null = null;
-  // A few fresh starts, then local improvement from the best.
-  const biases = [1, 1, 0.5, 0.5, 0, 0, -0.5, -1];
+  let best: { rails: Comet[][]; s: number } | null = null;
+  // Several fresh starts, then local improvement from the best.
+  const biases = [1, 1, 0.5, 0.5, 0, 0, -0.5, -1, 1.5, 2];
   for (let start = 0; start < biases.length; start++) {
-    const rand = rng((i + 1) * 7919 + start);
+    const rand = rng((i + 1) * 7919 + start * 31 + dock);
     const rails = initialDeal(pic.rows, plan, rand, biases[start]);
     const report = evaluate(base(rails), plan);
     const s = score(report, plan);
-    if (process.env.DEBUG) console.log(`  start ${start} bias ${biases[start]}: ${report ? `rw=${report.random_win} usesDock=${report.usesDock}` : 'no win found'}`);
-    if (report && (!best || s < best.s)) best = { rails, report, s };
+    if (process.env.DEBUG) console.log(`  start ${start} bias ${biases[start]}: ${report ? `sensible=${report.sensible} dock=${report.usesDock} fuse=${report.needsFuse}` : 'no win found'}`);
+    if (report && (!best || s < best.s)) best = { rails, s };
   }
   if (!best || !Number.isFinite(best.s)) return { level: base([]), s: Infinity };
-  const rand = rng((i + 1) * 104729);
+  // Local search. Equal-score changes are accepted too, so the search can wander across flat
+  // stretches (e.g. many layouts the sensible player always wins) instead of stopping dead; when
+  // it hasn't improved for a while it starts over from a fresh deal.
+  const rand = rng((i + 1) * 104729 + dock);
+  let cur = best;
+  let sinceBetter = 0;
   for (let step = 0; step < STEPS && best.s > 0.02; step++) {
-    const rails = mutate(best.rails, plan, rand);
-    const report = evaluate(base(rails), plan);
-    const s = score(report, plan);
-    if (report && s < best.s) best = { rails, report, s };
+    if (sinceBetter > 60) {
+      const rails = initialDeal(pic.rows, plan, rand, rand() * 3 - 0.5);
+      const s = score(evaluate(base(rails), plan), plan);
+      if (Number.isFinite(s)) cur = { rails, s };
+      sinceBetter = 0;
+    }
+    const rails = mutate(cur.rails, plan, rand);
+    const s = score(evaluate(base(rails), plan), plan);
+    if (s <= cur.s) cur = { rails, s };
+    if (cur.s < best.s) { best = cur; sinceBetter = 0; } else sinceBetter++;
   }
   return { level: base(best.rails), s: best.s };
 }
@@ -264,20 +336,24 @@ function main() {
       if (second.s < built.s) built = second;
     }
     if (!Number.isFinite(built.s)) throw new Error(`no winnable layout for level ${i + 1}`);
-    const level: LevelData = { ...built.level, solver: analyzeLevel(built.level, 400_000) };
-    const inBand = level.solver!.random_win >= plan.target[0] && level.solver!.random_win <= plan.target[1];
-    writeFileSync(file, JSON.stringify(level, null, 2) + '\n');
+    const level: LevelData = { ...built.level, solver: analyzeLevel(built.level, 150_000) };
     const r = level.solver!;
+    const sw = r.sensible_win ?? NaN;
+    const inBand = sw >= plan.target[0] && sw <= plan.target[1];
+    writeFileSync(file, JSON.stringify(level, null, 2) + '\n');
     const { w, h } = parseCanvas(level.canvas);
     const comets = level.rails.reduce((n, rail) => n + rail.length, 0);
     console.log(
       `${String(i + 1).padStart(2)} ${plan.picture.padEnd(11)} ${plan.badge.padEnd(8)} ${w}x${h} ` +
-      `rails=${plan.rails} dock=${level.dock} comets=${String(comets).padStart(2)} ` +
-      `random_win=${r.random_win.toFixed(3)} target=${plan.target.join('–')} ${inBand ? 'in band' : 'OUT OF BAND'} ` +
-      `peak_dock=${r.peak_dock} orders=${r.winning_orders}${r.winning_orders_capped ? '+' : ''} ` +
-      `${r.exact === false ? 'ESTIMATED ' : ''}states=${r.states} (${((Date.now() - t0) / 1000).toFixed(1)}s)`,
+      `rails=${plan.rails} dock=${level.dock} comets=${String(comets).padStart(2)} ${plan.fusion ? 'fusion' : '      '} ` +
+      `sensible=${(sw * 100).toFixed(0).padStart(3)}% target=${plan.target.map((x) => x * 100).join('–')}% ${inBand ? 'in band' : 'OUT OF BAND'} ` +
+      `random=${(r.random_win * 100).toFixed(0)}% peak_dock=${r.peak_dock} ${r.exact === false ? 'ESTIMATED ' : ''}` +
+      `(${((Date.now() - t0) / 1000).toFixed(1)}s)`,
     );
   });
 }
 
-main();
+// Run only when called as a script (so tools can import the helpers).
+if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) main();
+
+export { PLANS, initialDeal, mutate, evaluate, score };

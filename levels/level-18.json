@@ -3,74 +3,111 @@
   "name": "Butterfly",
   "badge": "normal",
   "canvas": [
-    ".PPP......PPP.",
-    "PPPPP....PPPPP",
-    "PPOOPP..PPOOPP",
-    "PPOOPPS.PPOOPP",
-    ".PPPPPSSPPPPP.",
-    "..PPPPSSPPPP..",
-    "..BBBBSSBBBB..",
-    ".BBBBBSSBBBBB.",
-    "BBOOBBSSBBOOBB",
-    "BBOOBB..BBOOBB",
-    ".BBBB....BBBB.",
-    "..BB......BB.."
+    ".SSS......SSS.",
+    "SPPPS....SPPPS",
+    "SPOPPS..SPPOPS",
+    "SPPOPSSSSPOPPS",
+    ".SPPPSWWSPPPS.",
+    "..SSSSWWSSSS..",
+    "..SBBBWWBBBS..",
+    ".SBBOBWWBOBBS.",
+    "SBBOOBWWBOOBBS",
+    "SBBBBS..SBBBBS",
+    ".SSSS....SSSS.",
+    ".............."
   ],
   "rails": [
     [
       {
+        "color": "S",
+        "charge": 7
+      },
+      {
+        "color": "S",
+        "charge": 9
+      },
+      {
         "color": "B",
-        "charge": 17
-      }
-    ],
-    [
-      {
-        "color": "B",
-        "charge": 11
-      },
-      {
-        "color": "P",
-        "charge": 17
-      }
-    ],
-    [
-      {
-        "color": "O",
-        "charge": 8
-      },
-      {
-        "color": "P",
-        "charge": 20
-      },
-      {
-        "color": "P",
-        "charge": 13
-      }
-    ],
-    [
-      {
-        "color": "O",
         "charge": 8
       },
       {
         "color": "S",
-        "charge": 11
+        "charge": 4
+      },
+      {
+        "color": "S",
+        "charge": 5
+      }
+    ],
+    [
+      {
+        "color": "B",
+        "charge": 8
+      },
+      {
+        "color": "S",
+        "charge": 9
       },
       {
         "color": "B",
-        "charge": 18
+        "charge": 4
+      },
+      {
+        "color": "W",
+        "charge": 10
+      }
+    ],
+    [
+      {
+        "color": "S",
+        "charge": 5
+      },
+      {
+        "color": "P",
+        "charge": 10
+      },
+      {
+        "color": "P",
+        "charge": 7
+      },
+      {
+        "color": "R",
+        "charge": 4
+      }
+    ],
+    [
+      {
+        "color": "B",
+        "charge": 9
+      },
+      {
+        "color": "S",
+        "charge": 6
+      },
+      {
+        "color": "Y",
+        "charge": 4
+      },
+      {
+        "color": "S",
+        "charge": 5
+      },
+      {
+        "color": "R",
+        "charge": 6
       }
     ]
   ],
   "dock": 3,
   "ring": 4,
+  "fusion": true,
   "solver": {
     "winnable_no_tools": true,
     "winning_orders": 1000000,
     "winning_orders_capped": true,
-    "peak_dock": 1,
-    "random_win": 0.4729,
-    "states": 115038,
+    "peak_dock": 2,
+    "random_win": 0.022,
+    "states": 0,
     "path": [
       {
         "kind": "rail",
@@ -78,6 +115,42 @@
       },
       {
         "kind": "rail",
+        "rail": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 3
+      },
+      {
+        "kind": "rail",
+        "rail": 3
+      },
+      {
+        "kind": "rail",
+        "rail": 2
+      },
+      {
+        "kind": "rail",
+        "rail": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 2
+      },
+      {
+        "kind": "rail",
+        "rail": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 2
+      },
+      {
+        "kind": "rail",
         "rail": 1
       },
       {
@@ -86,27 +159,19 @@
       },
       {
         "kind": "rail",
-        "rail": 3
+        "rail": 1
       },
       {
         "kind": "dock",
-        "slot": 0
+        "slot": 1
       },
       {
         "kind": "rail",
-        "rail": 3
+        "rail": 1
       },
       {
         "kind": "dock",
-        "slot": 0
-      },
-      {
-        "kind": "dock",
-        "slot": 0
-      },
-      {
-        "kind": "rail",
-        "rail": 3
+        "slot": 1
       },
       {
         "kind": "dock",
@@ -117,22 +182,41 @@
         "rail": 2
       },
       {
-        "kind": "rail",
-        "rail": 2
+        "kind": "fuse",
+        "from": 0,
+        "onto": 1
+      },
+      {
+        "kind": "dock",
+        "slot": 1
       },
       {
         "kind": "dock",
         "slot": 0
       },
       {
-        "kind": "dock",
-        "slot": 0
+        "kind": "rail",
+        "rail": 3
       },
       {
         "kind": "rail",
-        "rail": 2
+        "rail": 3
+      },
+      {
+        "kind": "rail",
+        "rail": 3
+      },
+      {
+        "kind": "fuse",
+        "from": 0,
+        "onto": 1
+      },
+      {
+        "kind": "dock",
+        "slot": 1
       }
     ],
-    "exact": true
+    "exact": false,
+    "sensible_win": 0.765
   }
 }

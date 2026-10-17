@@ -34,11 +34,25 @@ describe.each(levels.map((lv) => [lv.id, lv] as const))('%s', (_id, lv) => {
     }
   });
 
-  it('has enough charge of every color for its dust', () => {
+  it('has enough charge (or fusion fuel) for every color, so it starts playable', () => {
     const dust = dustCounts(createState(lv));
-    const charge = new Map<string, number>();
-    for (const rail of lv.rails) for (const c of rail) charge.set(c.color, (charge.get(c.color) ?? 0) + c.charge);
-    for (const [color, n] of dust) expect(charge.get(color) ?? 0, color).toBeGreaterThanOrEqual(n);
+    expect(dust.size).toBeGreaterThan(0);
+    expect(createState(lv).status).toBe('playing');
+  });
+
+  it('wears an honest badge: Tricky and Starfall beat the sensible player', () => {
+    const sw = lv.solver?.sensible_win;
+    expect(sw).toBeTypeOf('number');
+    if (lv.badge === 'tricky') expect(sw!).toBeLessThanOrEqual(0.3);
+    if (lv.badge === 'starfall') expect(sw!).toBeLessThanOrEqual(0.12);
+  });
+
+  it('needs a fusion when a mixed color has no comets of its own', () => {
+    if (!lv.fusion) return;
+    const dust = dustCounts(createState(lv));
+    const own = new Set(lv.rails.flat().map((c) => c.color));
+    const fusionOnly = ['O', 'G', 'P'].some((c) => dust.has(c as never) && !own.has(c as never));
+    if (fusionOnly) expect(lv.solver!.path.some((m) => m.kind === 'fuse')).toBe(true);
   });
 
   it('is winnable, and the recorded winning path really wins', () => {

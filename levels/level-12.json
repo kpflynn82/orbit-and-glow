@@ -18,48 +18,81 @@
     [
       {
         "color": "S",
-        "charge": 8
+        "charge": 7
+      },
+      {
+        "color": "Y",
+        "charge": 1
       },
       {
         "color": "B",
-        "charge": 16
+        "charge": 5
+      },
+      {
+        "color": "B",
+        "charge": 5
       }
     ],
     [
       {
         "color": "S",
-        "charge": 16
+        "charge": 5
+      },
+      {
+        "color": "S",
+        "charge": 7
       },
       {
         "color": "B",
-        "charge": 11
+        "charge": 5
       }
     ],
     [
       {
-        "color": "Y",
-        "charge": 1
+        "color": "S",
+        "charge": 5
+      },
+      {
+        "color": "B",
+        "charge": 4
+      },
+      {
+        "color": "B",
+        "charge": 8
       }
     ],
     [
       {
         "color": "W",
-        "charge": 16
+        "charge": 6
+      },
+      {
+        "color": "W",
+        "charge": 6
+      },
+      {
+        "color": "W",
+        "charge": 4
       }
     ]
   ],
   "dock": 3,
   "ring": 4,
+  "fusion": true,
   "solver": {
     "winnable_no_tools": true,
     "winning_orders": 1000000,
     "winning_orders_capped": true,
-    "peak_dock": 1,
-    "random_win": 0.4443,
-    "states": 8995,
+    "peak_dock": 3,
+    "random_win": 0.1261,
+    "states": 0,
     "path": [
       {
         "kind": "rail",
+        "rail": 3
+      },
+      {
+        "kind": "rail",
         "rail": 0
       },
       {
@@ -67,8 +100,28 @@
         "rail": 0
       },
       {
+        "kind": "rail",
+        "rail": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 3
+      },
+      {
+        "kind": "rail",
+        "rail": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 3
+      },
+      {
         "kind": "dock",
-        "slot": 0
+        "slot": 1
+      },
+      {
+        "kind": "dock",
+        "slot": 2
       },
       {
         "kind": "rail",
@@ -79,16 +132,12 @@
         "rail": 2
       },
       {
-        "kind": "dock",
-        "slot": 0
+        "kind": "rail",
+        "rail": 2
       },
       {
-        "kind": "dock",
-        "slot": 0
-      },
-      {
-        "kind": "dock",
-        "slot": 0
+        "kind": "rail",
+        "rail": 2
       },
       {
         "kind": "dock",
@@ -99,14 +148,15 @@
         "rail": 1
       },
       {
-        "kind": "dock",
-        "slot": 0
+        "kind": "rail",
+        "rail": 1
       },
       {
-        "kind": "rail",
-        "rail": 3
+        "kind": "dock",
+        "slot": 0
       }
     ],
-    "exact": true
+    "exact": false,
+    "sensible_win": 0.57
   }
 }

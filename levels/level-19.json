@@ -7,84 +7,113 @@
     ".YY..SSSS..YY.",
     ".....SYYS.....",
     ".....SSSS.....",
-    ".....RRRR.....",
-    ".....WWWW.....",
-    "....RRRRRR....",
-    "....WWWWWW....",
-    "....RRRRRR....",
-    "...WWWWWWWW...",
-    "...RRRRRRRR...",
+    "....SRRRRS....",
+    "....SWYWWS....",
+    "....SRRRRS....",
+    "...SWWWWWWS...",
+    "...SRRYRRRS...",
+    "...SWWWWWWS...",
+    "..SRRRRRRRRS..",
     "..SSSSSSSSSS..",
-    "BBBSSSSSSSSBBB",
+    "BBBGGBBBBGGBBB",
     "BBBBBBBBBBBBBB"
   ],
   "rails": [
     [
       {
-        "color": "Y",
+        "color": "R",
+        "charge": 6
+      },
+      {
+        "color": "R",
+        "charge": 4
+      },
+      {
+        "color": "S",
+        "charge": 7
+      },
+      {
+        "color": "S",
+        "charge": 8
+      },
+      {
+        "color": "S",
+        "charge": 7
+      }
+    ],
+    [
+      {
+        "color": "W",
+        "charge": 7
+      },
+      {
+        "color": "B",
+        "charge": 6
+      },
+      {
+        "color": "B",
+        "charge": 8
+      },
+      {
+        "color": "R",
+        "charge": 6
+      },
+      {
+        "color": "S",
         "charge": 8
       }
     ],
     [
       {
         "color": "R",
-        "charge": 11
+        "charge": 5
       },
       {
         "color": "W",
-        "charge": 18
-      }
-    ],
-    [
-      {
-        "color": "R",
-        "charge": 13
+        "charge": 4
       },
       {
         "color": "B",
-        "charge": 20
+        "charge": 8
+      },
+      {
+        "color": "S",
+        "charge": 4
       }
     ],
     [
       {
-        "color": "S",
-        "charge": 14
+        "color": "W",
+        "charge": 4
       },
       {
-        "color": "S",
-        "charge": 14
+        "color": "Y",
+        "charge": 6
+      },
+      {
+        "color": "Y",
+        "charge": 6
+      },
+      {
+        "color": "B",
+        "charge": 4
       }
     ]
   ],
   "dock": 3,
   "ring": 4,
+  "fusion": true,
   "solver": {
     "winnable_no_tools": true,
     "winning_orders": 1000000,
     "winning_orders_capped": true,
-    "peak_dock": 1,
-    "random_win": 0.4771,
-    "states": 25153,
+    "peak_dock": 2,
+    "random_win": 0.0087,
+    "states": 0,
     "path": [
       {
         "kind": "rail",
-        "rail": 1
-      },
-      {
-        "kind": "dock",
-        "slot": 0
-      },
-      {
-        "kind": "rail",
-        "rail": 1
-      },
-      {
-        "kind": "dock",
-        "slot": 0
-      },
-      {
-        "kind": "dock",
-        "slot": 0
+        "rail": 0
       },
       {
         "kind": "rail",
@@ -92,7 +121,15 @@
       },
       {
         "kind": "rail",
-        "rail": 3
+        "rail": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 0
       },
       {
         "kind": "dock",
@@ -100,11 +137,47 @@
       },
       {
         "kind": "rail",
+        "rail": 1
+      },
+      {
+        "kind": "rail",
+        "rail": 1
+      },
+      {
+        "kind": "rail",
+        "rail": 1
+      },
+      {
+        "kind": "rail",
+        "rail": 1
+      },
+      {
+        "kind": "rail",
+        "rail": 3
+      },
+      {
+        "kind": "rail",
+        "rail": 3
+      },
+      {
+        "kind": "rail",
+        "rail": 1
+      },
+      {
+        "kind": "rail",
+        "rail": 2
+      },
+      {
+        "kind": "rail",
+        "rail": 2
+      },
+      {
+        "kind": "rail",
         "rail": 2
       },
       {
         "kind": "dock",
-        "slot": 0
+        "slot": 1
       },
       {
         "kind": "rail",
@@ -113,7 +186,22 @@
       {
         "kind": "rail",
         "rail": 3
+      },
+      {
+        "kind": "rail",
+        "rail": 3
+      },
+      {
+        "kind": "fuse",
+        "from": 0,
+        "onto": 1
+      },
+      {
+        "kind": "dock",
+        "slot": 1
       }
-    ]
+    ],
+    "exact": false,
+    "sensible_win": 0.395
   }
 }

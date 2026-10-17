@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { applyMove, createState, lapSteps } from '../src/engine/engine';
+import { applyMove, createState, lapSteps, legalMoves } from '../src/engine/engine';
 import { canStillWin, solveLevel } from '../src/engine/solver';
 import type { Comet, LevelData } from '../src/engine/types';
 
 const C = (color: Comet['color'], charge: number): Comet => ({ color, charge });
 
-function level(canvas: string[], rails: Comet[][], dock = 4): LevelData {
-  return { id: 't', name: 't', badge: 'normal', canvas, rails, dock, ring: 4 };
+function level(canvas: string[], rails: Comet[][], dock = 4, fusion = false): LevelData {
+  return { id: 't', name: 't', badge: 'normal', canvas, rails, dock, ring: 4, fusion };
 }
 
 describe('lap order', () => {
@@ -118,5 +118,68 @@ describe('solver', () => {
     let s = createState(lv);
     s = applyMove(s, { kind: 'rail', rail: 1 }).state;
     expect(canStillWin(s)).toBe(true);
+  });
+});
+
+describe('fusion', () => {
+  it('fuses two docked primaries into the mixed color, charges added, freeing a slot', () => {
+    let s = createState(level(['PPP'], [[C('R', 2)], [C('B', 1)]], 2, true));
+    s = applyMove(s, { kind: 'rail', rail: 0 }).state; // red sees no red → parks
+    s = applyMove(s, { kind: 'rail', rail: 1 }).state; // blue sees no blue → parks
+    expect(s.dock).toEqual([C('R', 2), C('B', 1)]);
+    const r = applyMove(s, { kind: 'fuse', from: 0, onto: 1 });
+    expect(r.result.type).toBe('fuse');
+    expect(r.state.dock).toEqual([null, C('P', 3)]);
+    s = applyMove(r.state, { kind: 'dock', slot: 1 }).state; // purple clears all three
+    expect(s.status).toBe('won');
+  });
+
+  it('only fuses different primaries, and only in levels that allow it', () => {
+    let s = createState(level(['PPPP'], [[C('R', 2)], [C('R', 1)], [C('B', 1)]], 3, true));
+    for (const rail of [0, 1, 2]) s = applyMove(s, { kind: 'rail', rail }).state;
+    const fuses = legalMoves(s).filter((m) => m.kind === 'fuse');
+    expect(fuses.every((m) => m.kind === 'fuse' && s.dock[m.from]!.color !== s.dock[m.onto]!.color)).toBe(true);
+    expect(fuses.length).toBe(4); // each red with the blue, both ways
+    let off = createState(level(['RRR'], [[C('B', 1)], [C('Y', 1)], [C('R', 3)]], 2));
+    off = applyMove(off, { kind: 'rail', rail: 0 }).state;
+    off = applyMove(off, { kind: 'rail', rail: 1 }).state;
+    expect(legalMoves(off).some((m) => m.kind === 'fuse')).toBe(false);
+  });
+
+  it('a comet that finds the Dock full waits while a fusion can make room, then parks', () => {
+    let s = createState(level(['PPP'], [[C('R', 2), C('Y', 1)], [C('B', 1)]], 2, true));
+    s = applyMove(s, { kind: 'rail', rail: 0 }).state; // R2 parks
+    s = applyMove(s, { kind: 'rail', rail: 0 }).state; // Y1 parks; Dock full
+    const r = applyMove(s, { kind: 'rail', rail: 1 }); // B1 must park; R+Y could fuse
+    expect(r.result.type === 'launch' && r.result.held).toBe(true);
+    expect(r.state.status).toBe('playing');
+    expect(r.state.holding).toEqual(C('B', 1));
+    expect(legalMoves(r.state).every((m) => m.kind === 'fuse')).toBe(true);
+    const f = applyMove(r.state, { kind: 'fuse', from: 0, onto: 1 });
+    expect(f.state.holding).toBeNull();
+    expect(f.state.dock).toEqual([C('B', 1), C('O', 3)]);
+    expect(f.result.parkedSlot).toBe(0);
+    // Red went into orange, so the purple can never be made: a dead end.
+    expect(f.state.status).toBe('stuck');
+    expect(f.state.stuckReason).toBe('dead-end');
+  });
+
+  it('is stuck when the Dock is full and no fusion can make room', () => {
+    let s = createState(level(['PPP'], [[C('R', 2)], [C('B', 1)]], 1, true));
+    s = applyMove(s, { kind: 'rail', rail: 0 }).state;
+    s = applyMove(s, { kind: 'rail', rail: 1 }).state;
+    expect(s.status).toBe('stuck');
+    expect(s.stuckReason).toBe('dock-full');
+  });
+
+  it('clearing the last dust always wins, even with charge left and a full Dock', () => {
+    const s = applyMove(createState(level(['R'], [[C('R', 2)]], 0)), { kind: 'rail', rail: 0 }).state;
+    expect(s.status).toBe('won');
+  });
+
+  it('the solver finds a win that needs a fusion', () => {
+    const r = solveLevel(level(['PPP'], [[C('R', 2)], [C('B', 1)]], 2, true));
+    expect(r.winnable_no_tools).toBe(true);
+    expect(r.path.some((m) => m.kind === 'fuse')).toBe(true);
   });
 });

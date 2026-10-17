@@ -16,12 +16,27 @@ section. Read this before starting work; the next prototype reads it before it s
 - Counting every winning order runs out of memory on 16×16 boards with 10+ comets. Big boards now
   get one proven win (found in milliseconds by trying the most promising launches first) plus
   estimates from 10,000 random games, marked `exact: false` in the report.
-- Reviewer: `applyMove` checks "Dock full" before "won", so clearing the last dust with charge left
-  and a full Dock would say Stuck. Can't happen in M1 (charges match dust exactly); needs Kevin's
-  OK to change before fusion or tools arrive. The bot now flags "stuck with no dust left".
+- Reviewer: `applyMove` checked "Dock full" before "won", so clearing the last dust with charge left
+  and a full Dock said Stuck. Fixed with fusion (Kevin approved the M2 plan): a win is checked first.
+- Fusion: a comet that finds the Dock full now waits at the gate while a fusion could make room
+  (only fusions are allowed until it parks); stuck only when no fusion can help. Dead ends count
+  fusion fuel: purple dust can still be cleared while red and blue charge remain.
 
 ## Level design
 
+- **Kevin's first playtest (Oct 16): "I could easily just tap the color needed."** He was right: a
+  bot playing that way won every try on 17 of 20 levels, including a Starfall. The levels had been
+  tuned with a bot that taps at random, and a random tapper loses a lot, so they looked hard. The
+  ruler is now the "sensible player" (src/engine/players.ts); Tricky and Starfall must beat it.
+- Small comet charges make levels easier, not harder: a comet that can spend all its charge in one
+  lap never parks. Difficulty needs comets that can't (big charges, hidden colors), buried behind
+  comets you can't use yet, plus a small Dock and, from level 6, fusion.
+- The sensible player wins 100% of most random layouts, so the level search had nothing to climb.
+  It now also scores a player who slips 25% of the time, accepts equal-score changes and restarts
+  when stuck. Three pictures (Teapot, Lighthouse, Butterfly) were redrawn with outlines so order
+  matters.
+- A mixed color with a single speck can't be split between two parent comets; it keeps its own
+  comet (bug that made level 16 unwinnable during the rebuild).
 - Difficulty comes mostly from the picture, not the deal. Flat pictures (a solid heart, a solid
   fish) give levels a random tapper can't lose, whatever the Dock size. Colors hidden behind other
   colors (stripes, outlines, rings, spots) are what make order matter. Nine pictures were redrawn
@@ -67,3 +82,5 @@ section. Read this before starting work; the next prototype reads it before it s
 - Reviewer: the bot's "silent doom" count included taps on docked comets that hit nothing. It now
   counts only launches that change the board.
 - Reviewer: `npm run dev` didn't print a Network address for phones; it now runs with `--host`.
+- `pkill -f <pattern>` also matches the shell running it when the pattern appears in the command;
+  stop background jobs by process id instead.

@@ -4,8 +4,9 @@ A color-sort puzzle prototype: send comets around a night-sky orbit to clear a p
 stardust. Designed in [gamecrafter](https://github.com/kpflynn82/gamecrafter)
 (`prototype-specs/orbit-and-glow.md`); built web-first so it plays from a link on a phone.
 
-**Status: M1 — gray box.** Orbit, rails, Dock, order-only rules, both kinds of stuck, free retry,
-color-blind glyphs, 20 solver-checked levels. No fusion, art or sound yet. See `docs/brief.md`.
+**Status: M1 + fusion (gray box).** Orbit, rails, Dock, order-only rules, fusion, both kinds of
+stuck, free retry, color-blind glyphs, coach tips, 20 solver-checked levels judged by a "sensible
+player" bot. No art or sound yet. See `docs/brief.md`.
 
 ## How to play
 
@@ -13,6 +14,10 @@ Tap the front comet on a rail. It flies one lap around the orbit and clears ever
 color that it can see from the edge (only the first speck in each row or column). If it still has
 charge after the lap, it parks in the Dock; tap it there to send it again later. Clear the whole
 picture to win. If a comet has to park and the Dock is full, you're stuck — retry is free.
+From level 6, drag one docked comet onto another to **fuse** them: Red + Yellow = Orange,
+Yellow + Blue = Green, Red + Blue = Purple, charges added. Sending a comet that can't hit anything
+yet is how you park it, ready to fuse. If a comet comes back to a full Dock, it waits at the gate
+until you fuse two docked comets to make room.
 Tap several comets quickly and they wait their turn beside the gate, one lap at a time.
 Nothing depends on how fast you tap; only the order matters.
 

@@ -3,16 +3,20 @@
 // It plays a level every possible way (every launch order) and reports: can it be won with no
 // tools, how many different launch orders win, how full the Dock gets on the best path, and how
 // often a player tapping at random would win. Identical comets sitting in the Dock count as one
-// choice, and launching a docked comet that would hit nothing (a no-op) is skipped.
+// choice, launching a docked comet that would hit nothing (a no-op) is skipped, and fusing the same
+// two comets counts once whichever one is dragged onto the other.
 
 import { applyMove, cometFor, createState, dockUsed, legalMoves, previewLap } from './engine';
 import type { GameState, LevelData, Move, SolverReport } from './types';
+import { sensibleWinRate } from './players';
 
 const WAYS_CAP = 1_000_000;
 
 // Memo entries are shared by states that differ only in which Dock slot holds which comet, so a
 // Dock move is remembered by the comet it launches ("R5"), not by its slot number.
-type CanonMove = { kind: 'rail'; rail: number } | { kind: 'dock'; comet: string };
+type CanonMove = { kind: 'rail'; rail: number } | { kind: 'dock'; comet: string } | { kind: 'fuse'; pair: [string, string] };
+
+const id = (c: { color: string; charge: number }) => `${c.color}${c.charge}`;
 
 interface Node {
   ways: number;
@@ -23,16 +27,23 @@ interface Node {
 
 function canon(s: GameState, m: Move): CanonMove {
   if (m.kind === 'rail') return m;
-  const c = s.dock[m.slot]!;
-  return { kind: 'dock', comet: `${c.color}${c.charge}` };
+  if (m.kind === 'dock') return { kind: 'dock', comet: id(s.dock[m.slot]!) };
+  const pair = [id(s.dock[m.from]!), id(s.dock[m.onto]!)].sort() as [string, string];
+  return { kind: 'fuse', pair };
 }
 
 /** Turn a remembered move back into a real move for this state. */
 export function resolveMove(s: GameState, m: CanonMove): Move {
   if (m.kind === 'rail') return m;
-  const slot = s.dock.findIndex((c) => c !== null && `${c.color}${c.charge}` === m.comet);
-  if (slot < 0) throw new Error(`no docked comet ${m.comet}`);
-  return { kind: 'dock', slot };
+  if (m.kind === 'dock') {
+    const slot = s.dock.findIndex((c) => c !== null && id(c) === m.comet);
+    if (slot < 0) throw new Error(`no docked comet ${m.comet}`);
+    return { kind: 'dock', slot };
+  }
+  const from = s.dock.findIndex((c) => c !== null && id(c) === m.pair[0]);
+  const onto = s.dock.findIndex((c, i) => i !== from && c !== null && id(c) === m.pair[1]);
+  if (from < 0 || onto < 0) throw new Error(`no docked pair ${m.pair.join('+')}`);
+  return { kind: 'fuse', from, onto };
 }
 
 export function stateKey(s: GameState): string {
@@ -44,15 +55,20 @@ export function stateKey(s: GameState): string {
     .map((c) => `${c.color}${c.charge}`)
     .sort()
     .join(',');
-  return `${cells}|${rails}|${dock}`;
+  return `${cells}|${rails}|${dock}|${s.holding ? id(s.holding) : ''}`;
 }
 
 /** The distinct, useful moves from a state (see file comment). */
 export function candidateMoves(s: GameState): Move[] {
   const out: Move[] = [];
   const seenDock = new Set<string>();
+  const seenFuse = new Set<string>();
   for (const m of legalMoves(s)) {
-    if (m.kind === 'dock') {
+    if (m.kind === 'fuse') {
+      const k = [id(s.dock[m.from]!), id(s.dock[m.onto]!)].sort().join('+');
+      if (seenFuse.has(k)) continue;
+      seenFuse.add(k);
+    } else if (m.kind === 'dock') {
       const c = cometFor(s, m)!;
       const k = `${c.color}${c.charge}`;
       if (seenDock.has(k)) continue;
@@ -156,7 +172,8 @@ export function findWin(start: GameState, stateBudget = 1_000_000): Move[] | nul
       const { state, result } = applyMove(s, m);
       // Prefer: a win, then not stuck, then no leftover to park, then more dust cleared.
       const score =
-        (state.status === 'won' ? 1e6 : 0) + (state.status === 'stuck' ? -1e6 : 0) + (result.leftover === 0 ? 1000 : 0) + result.shots.length;
+        (state.status === 'won' ? 1e6 : 0) + (state.status === 'stuck' ? -1e6 : 0) +
+        (result.type === 'fuse' ? 500 : (result.leftover === 0 ? 1000 : 0) + result.shots.length);
       return { m, state, score };
     });
     options.sort((a, b) => b.score - a.score);
@@ -209,7 +226,7 @@ export function sampleLevel(start: GameState, games = 10_000, seed = 7): { rando
  */
 export function analyzeLevel(level: LevelData, exactCap = 20_000, searchBudget = 1_000_000): SolverReport {
   try {
-    return { ...solveLevel(level, exactCap), exact: true };
+    return { ...solveLevel(level, exactCap), exact: true, sensible_win: sensibleWinRate(level) };
   } catch (e) {
     if (!(e instanceof TooManyStates)) throw e;
   }
@@ -235,6 +252,7 @@ export function analyzeLevel(level: LevelData, exactCap = 20_000, searchBudget =
     states: 0,
     path,
     exact: false,
+    sensible_win: sensibleWinRate(level),
   };
 }
 

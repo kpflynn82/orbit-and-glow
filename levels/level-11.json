@@ -19,56 +19,81 @@
   "rails": [
     [
       {
+        "color": "B",
+        "charge": 7
+      },
+      {
+        "color": "Y",
+        "charge": 5
+      },
+      {
+        "color": "O",
+        "charge": 8
+      },
+      {
+        "color": "P",
+        "charge": 7
+      },
+      {
+        "color": "P",
+        "charge": 7
+      }
+    ],
+    [
+      {
         "color": "W",
         "charge": 4
       },
       {
-        "color": "P",
-        "charge": 14
+        "color": "Y",
+        "charge": 4
       },
       {
-        "color": "G",
-        "charge": 12
+        "color": "P",
+        "charge": 6
+      },
+      {
+        "color": "P",
+        "charge": 5
+      },
+      {
+        "color": "P",
+        "charge": 6
       }
     ],
     [
       {
         "color": "Y",
-        "charge": 12
-      },
-      {
-        "color": "P",
         "charge": 8
       },
-      {
-        "color": "P",
-        "charge": 8
-      }
-    ],
-    [
       {
         "color": "O",
-        "charge": 16
+        "charge": 8
       },
       {
         "color": "P",
-        "charge": 10
+        "charge": 7
       },
       {
         "color": "P",
-        "charge": 11
+        "charge": 5
+      },
+      {
+        "color": "P",
+        "charge": 8
       }
     ]
   ],
   "dock": 3,
   "ring": 4,
+  "fusion": true,
   "solver": {
     "winnable_no_tools": true,
     "winning_orders": 1000000,
     "winning_orders_capped": true,
-    "peak_dock": 2,
-    "random_win": 0.4957,
-    "states": 194244,
+    "peak_dock": 3,
+    "random_win": 0.0034,
+    "states": 0,
     "path": [
       {
         "kind": "rail",
@@ -79,12 +104,25 @@
         "rail": 0
       },
       {
-        "kind": "rail",
-        "rail": 2
+        "kind": "fuse",
+        "from": 0,
+        "onto": 1
+      },
+      {
+        "kind": "dock",
+        "slot": 1
+      },
+      {
+        "kind": "dock",
+        "slot": 0
       },
       {
         "kind": "rail",
-        "rail": 2
+        "rail": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 0
       },
       {
         "kind": "rail",
@@ -92,15 +130,43 @@
       },
       {
         "kind": "dock",
-        "slot": 1
+        "slot": 0
+      },
+      {
+        "kind": "rail",
+        "rail": 2
+      },
+      {
+        "kind": "rail",
+        "rail": 1
       },
       {
         "kind": "dock",
-        "slot": 1
+        "slot": 2
       },
       {
-        "kind": "dock",
-        "slot": 1
+        "kind": "rail",
+        "rail": 1
+      },
+      {
+        "kind": "rail",
+        "rail": 1
+      },
+      {
+        "kind": "rail",
+        "rail": 1
+      },
+      {
+        "kind": "rail",
+        "rail": 1
+      },
+      {
+        "kind": "rail",
+        "rail": 2
+      },
+      {
+        "kind": "rail",
+        "rail": 2
       },
       {
         "kind": "rail",
@@ -112,37 +178,14 @@
       },
       {
         "kind": "dock",
-        "slot": 1
-      },
-      {
-        "kind": "dock",
-        "slot": 1
-      },
-      {
-        "kind": "dock",
-        "slot": 1
-      },
-      {
-        "kind": "rail",
-        "rail": 1
-      },
-      {
-        "kind": "dock",
         "slot": 0
       },
       {
-        "kind": "dock",
-        "slot": 1
-      },
-      {
         "kind": "rail",
-        "rail": 1
-      },
-      {
-        "kind": "rail",
-        "rail": 1
+        "rail": 2
       }
     ],
-    "exact": true
+    "exact": false,
+    "sensible_win": 0.46
   }
 }

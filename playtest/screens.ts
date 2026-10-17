@@ -50,17 +50,51 @@ async function tap(page: Page, m: Move): Promise<void> {
 }
 
 /** Play a move list by tapping, as a quick player would: several comets in the air at once. */
+/** Drag one docked comet onto another, the way a finger would. */
+async function drag(page: Page, from: number, onto: number): Promise<void> {
+  const a = await page.evaluate((i) => window.__orbit!.slotPoint(i), from);
+  const b = await page.evaluate((i) => window.__orbit!.slotPoint(i), onto);
+  await page.mouse.move(a.x, a.y);
+  await page.mouse.down();
+  for (let k = 1; k <= 8; k++) await page.mouse.move(a.x + ((b.x - a.x) * k) / 8, a.y + ((b.y - a.y) * k) / 8);
+  await page.mouse.up();
+}
+
 async function play(page: Page, lv: LevelData, moves: Move[]): Promise<void> {
   for (const m of moves) {
-    if (m.kind === 'dock') await waitFor(page, 'window.__orbit.flying() === 0'); // its comet must have landed
+    // Dock launches and fusions need the comets involved to have landed.
+    if (m.kind !== 'rail') await waitFor(page, 'window.__orbit.busy() === false');
     else await waitFor(page, `window.__orbit.flying() < ${lv.ring}`);
     const before = await page.evaluate(() => window.__orbit!.moves());
-    await tap(page, m);
+    if (m.kind === 'fuse') await drag(page, m.from, m.onto);
+    else await tap(page, m);
     await waitFor(page, `window.__orbit.moves() > ${before}`, 3000).catch(() => {
-      throw new Error(`tap on ${JSON.stringify(m)} did not launch a comet`);
+      throw new Error(`${m.kind === 'fuse' ? 'drag' : 'tap'} for ${JSON.stringify(m)} did nothing`);
     });
   }
-  await waitFor(page, 'window.__orbit.flying() === 0');
+  await waitFor(page, 'window.__orbit.busy() === false');
+}
+
+/** Random games on fusion levels until one reaches "a comet is waiting to park". */
+function findHolding(): { index: number; moves: Move[] } | null {
+  let seed = 99;
+  const rand = () => { seed = (seed * 1103515245 + 12345) >>> 0; return seed / 4294967296; };
+  for (const [index, lv] of levels.entries()) {
+    if (!lv.fusion) continue;
+    for (let g = 0; g < 400; g++) {
+      let s = createState(lv);
+      const moves: Move[] = [];
+      while (s.status === 'playing' && moves.length < 60) {
+        const legal = legalMoves(s).filter((m) => m.kind !== 'dock'); // keep it short: no relaunches
+        if (!legal.length) break;
+        const m = legal[Math.floor(rand() * legal.length)];
+        moves.push(m);
+        s = applyMove(s, m).state;
+        if (s.holding) return { index, moves };
+      }
+    }
+  }
+  return null;
 }
 
 /** A move list that ends in "Stuck" (found with the engine), for the stuck-screen check. */
@@ -122,6 +156,42 @@ async function main(): Promise<void> {
   await page.waitForTimeout(700);
   await page.screenshot({ path: `${SHOTS}/02b-comets-waiting-their-turn.png` });
   await waitFor(page, 'window.__orbit.flying() === 0');
+
+  // Fusion: the first fusion level up to its first fusion, a drag in progress, then the result.
+  const fusionIdx = levels.findIndex((lv) => lv.fusion && lv.solver!.path.some((m) => m.kind === 'fuse'));
+  if (fusionIdx >= 0) {
+    const lv = levels[fusionIdx];
+    const path = lv.solver!.path;
+    const fi = path.findIndex((m) => m.kind === 'fuse');
+    await page.evaluate((n) => { window.__orbit!.load(n); window.__orbit!.speed(5); }, fusionIdx);
+    await page.waitForTimeout(150);
+    await play(page, lv, path.slice(0, fi));
+    await page.evaluate(() => window.__orbit!.speed(1));
+    await page.waitForTimeout(400);
+    await page.screenshot({ path: `${SHOTS}/02c-fusion-ready.png` });
+    const m = path[fi] as Extract<Move, { kind: 'fuse' }>;
+    const a = await page.evaluate((i) => window.__orbit!.slotPoint(i), m.from);
+    const b = await page.evaluate((i) => window.__orbit!.slotPoint(i), m.onto);
+    await page.mouse.move(a.x, a.y);
+    await page.mouse.down();
+    for (let k = 1; k <= 5; k++) await page.mouse.move(a.x + ((b.x - a.x) * k) / 8, a.y + ((b.y - a.y) * k) / 8 - 20);
+    await page.screenshot({ path: `${SHOTS}/02d-fusion-dragging.png` });
+    await page.mouse.move(b.x, b.y);
+    await page.mouse.up();
+    await page.waitForTimeout(700);
+    await page.screenshot({ path: `${SHOTS}/02e-fused.png` });
+  }
+
+  // A comet waiting to park (Dock full, but a fusion could make room).
+  const held = findHolding();
+  if (held) {
+    await page.evaluate((n) => { window.__orbit!.load(n); window.__orbit!.speed(5); }, held.index);
+    await page.waitForTimeout(150);
+    await play(page, levels[held.index], held.moves);
+    await page.evaluate(() => window.__orbit!.speed(1));
+    await page.waitForTimeout(600);
+    await page.screenshot({ path: `${SHOTS}/02f-waiting-to-park.png` });
+  }
 
   const results: string[] = [];
   let failures = 0;

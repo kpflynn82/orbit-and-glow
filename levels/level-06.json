@@ -17,16 +17,22 @@
   "rails": [
     [
       {
-        "color": "O",
-        "charge": 6
-      },
-      {
-        "color": "G",
+        "color": "R",
         "charge": 8
       },
       {
+        "color": "R",
+        "charge": 5
+      },
+      {
         "color": "G",
-        "charge": 16
+        "charge": 3
+      }
+    ],
+    [
+      {
+        "color": "Y",
+        "charge": 3
       },
       {
         "color": "G",
@@ -34,31 +40,47 @@
       },
       {
         "color": "S",
-        "charge": 10
+        "charge": 4
+      },
+      {
+        "color": "G",
+        "charge": 8
       }
     ],
     [
       {
         "color": "G",
-        "charge": 6
-      }
-    ],
-    [
+        "charge": 7
+      },
       {
-        "color": "R",
-        "charge": 10
+        "color": "G",
+        "charge": 5
+      },
+      {
+        "color": "G",
+        "charge": 3
+      },
+      {
+        "color": "S",
+        "charge": 6
+      },
+      {
+        "color": "G",
+        "charge": 4
       }
     ]
   ],
-  "dock": 3,
+  "dock": 2,
   "ring": 4,
+  "fusion": true,
+  "tip": "New: drag a docked comet onto another to fuse them. Red + Yellow = Orange, charges add.",
   "solver": {
     "winnable_no_tools": true,
-    "winning_orders": 7868,
-    "winning_orders_capped": false,
+    "winning_orders": 1000000,
+    "winning_orders_capped": true,
     "peak_dock": 2,
-    "random_win": 0.7655,
-    "states": 458,
+    "random_win": 0.1245,
+    "states": 11581,
     "path": [
       {
         "kind": "rail",
@@ -74,19 +96,7 @@
       },
       {
         "kind": "rail",
-        "rail": 0
-      },
-      {
-        "kind": "rail",
-        "rail": 0
-      },
-      {
-        "kind": "dock",
-        "slot": 0
-      },
-      {
-        "kind": "dock",
-        "slot": 1
+        "rail": 2
       },
       {
         "kind": "rail",
@@ -94,9 +104,51 @@
       },
       {
         "kind": "rail",
+        "rail": 2
+      },
+      {
+        "kind": "rail",
+        "rail": 2
+      },
+      {
+        "kind": "rail",
+        "rail": 2
+      },
+      {
+        "kind": "dock",
+        "slot": 0
+      },
+      {
+        "kind": "rail",
         "rail": 1
+      },
+      {
+        "kind": "rail",
+        "rail": 1
+      },
+      {
+        "kind": "rail",
+        "rail": 1
+      },
+      {
+        "kind": "rail",
+        "rail": 1
+      },
+      {
+        "kind": "dock",
+        "slot": 1
+      },
+      {
+        "kind": "fuse",
+        "from": 1,
+        "onto": 0
+      },
+      {
+        "kind": "dock",
+        "slot": 0
       }
     ],
-    "exact": true
+    "exact": true,
+    "sensible_win": 0.505
   }
 }
